@@ -4,7 +4,7 @@ import new_shape_from_axis = indexing.new_shape_from_axis;
 
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
 type Numeric = TypedArray | number[];
-type Broadcastable = number | TypedArray | tensor | number[];
+export type Broadcastable = number | TypedArray | tensor | number[];
 type Shape = number[] | Uint32Array;
 
 interface NumericalArray {

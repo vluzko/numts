@@ -9,7 +9,7 @@ class DAG {
     public nodes: Uint32Array;
     public adjacency_list: Map<number, [number[], number[]]>;
 
-    constructor(nodes: Uint32Array, adjacency_list: Map<number, [number[], number[]]) {
+    constructor(nodes: Uint32Array, adjacency_list: Map<number, [number[], number[]]>) {
         this.nodes = nodes;
         this.adjacency_list = adjacency_list;
     }
