@@ -1,4 +1,5 @@
 import {tensor, Broadcastable} from '../tensor';
+import * as constructors from './constructors';
 import {indexing} from '../indexing';
 import {utils} from '../utils';
 
@@ -11,9 +12,9 @@ import {utils} from '../utils';
 export function _upcast_to_tensor(value: Broadcastable): tensor {
     let a_array;
     if (utils.is_numeric(value)) {
-        a_array = tensor.array(new Float64Array([value]), new Uint32Array([1]), { disable_checks: true });
+        a_array = constructors.array(new Float64Array([value]), new Uint32Array([1]), { disable_checks: true });
     } else if (utils.is_typed_array(value)) {
-        a_array = tensor.array(value, new Uint32Array([value.length]), { disable_checks: true });
+        a_array = constructors.array(value, new Uint32Array([value.length]), { disable_checks: true });
     } else {
         a_array = value;
     }
@@ -67,7 +68,7 @@ export function _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: num
         dtype = new_dtype
     }
 
-    let new_array = tensor.filled(0, shape, dtype);
+    let new_array = constructors.filled(0, shape, dtype);
 
     for (let [a_val, b_val, index] of iter) {
         const new_val = f(a_val, b_val);
@@ -105,7 +106,7 @@ export function broadcast_matmul(a: Broadcastable, b: Broadcastable): tensor {
         return tensor.matmul_2d(a_array, b_array);
     } else {
         const new_dtype = utils._dtype_join(a_array.dtype, b_array.dtype);
-        let array = tensor.zeros(new_dimensions, new_dtype);
+        let array = constructors.zeros(new_dimensions, new_dtype);
 
         const index_iter = indexing.iorder_index_iterator(new_dimensions.slice(0, -2));
         const a_iter = indexing.iorder_index_iterator(a_shape.slice(0, -2));
@@ -147,7 +148,7 @@ export function matmul_2d(a: tensor, b: tensor): tensor {
         }
     };
 
-    return tensor.from_iterable(iter, new_shape);
+    return constructors.from_iterable(iter, new_shape);
 }
 
 // TODO: Generalize to an inner product.

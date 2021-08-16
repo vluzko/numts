@@ -1,4 +1,5 @@
 import {tensor} from "./tensor";
+import {from_iterable} from './tensor_core/constructors';
 import {indexing} from "./indexing";
 import {Shape} from "./types";
 
@@ -20,7 +21,7 @@ export function randint(lower: number = 0.0, upper: number = 1.0, shape: Shape =
     }
   };
 
-  return tensor.from_iterable(iter, shape, "int32");
+  return from_iterable(iter, shape, "int32");
 }
 
 /**
@@ -42,7 +43,7 @@ export function uniform(lower: number = 0.0, upper: number = 1.0, shape: Shape =
     }
   };
 
-  return tensor.from_iterable(iter, shape, "float64");
+  return from_iterable(iter, shape, "float64");
 }
 
 /**
@@ -63,7 +64,7 @@ export function normal(mean: number = 0.0, stdev: number = 1.0, shape: Shape = [
     }
   };
 
-  return tensor.from_iterable(iter, shape, "float64");
+  return from_iterable(iter, shape, "float64");
 }
 
 
