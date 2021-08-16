@@ -1,0 +1,4 @@
+{
+    "verbose": true,
+    "modulePathIgnorePatterns": ["prop_spec"]
+}

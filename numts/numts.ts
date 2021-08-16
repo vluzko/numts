@@ -29,28 +29,28 @@ export function where(condition, a, b?) {
 
 // TODO: Allow non-tensor arrays
 // TODO: Type upcasting.
-/**
- * Compute the sum of two arrays.
- * output[i] = a[i] + [i].
- * @param a
- * @param b
- * @return {number | tensor}
- */
-export function add(a, b) {
-  return tensor._add(a, b);
-}
+// /**
+//  * Compute the sum of two arrays.
+//  * output[i] = a[i] + [i].
+//  * @param a
+//  * @param b
+//  * @return {number | tensor}
+//  */
+// export function add(a, b) {
+//   return tensor._add(a, b);
+// }
 
-export function div(a, b) {
-  return tensor._div(a, b);
-}
+// export function div(a, b) {
+//   return tensor._div(a, b);
+// }
 
-export function mult(a, b) {
-  return tensor._mult(a, b);
-}
+// export function mult(a, b) {
+//   return tensor._mult(a, b);
+// }
 
-export function sub(a, b) {
-  return tensor._sub(a, b);
-}
+// export function sub(a, b) {
+//   return tensor._sub(a, b);
+// }
 
 /**
  * Wrapper around tensor.zeros

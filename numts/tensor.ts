@@ -1,5 +1,6 @@
 import { utils } from './utils';
 import { indexing } from './indexing';
+import * as arithmetic from './tensor_core/arithmetic';
 import new_shape_from_axis = indexing.new_shape_from_axis;
 
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
@@ -321,7 +322,7 @@ export class tensor {
         if (axis === undefined) {
             return <number>this.sum() / this.length;
         } else {
-            return tensor._div(this.sum(axis), this.shape[axis]);
+            return arithmetic._div(this.sum(axis), this.shape[axis]);
         }
     }
 
@@ -334,9 +335,9 @@ export class tensor {
         const mean = this.mean(axis);
         const squared_values = this.power(2);
         const mean_of_squares = squared_values.mean(axis);
-        const squared_mean = tensor._power(mean, 2);
-        const difference = tensor._sub(mean_of_squares, squared_mean);
-        const result = tensor._power(difference, 0.5);
+        const squared_mean = arithmetic._power(mean, 2);
+        const difference = arithmetic._sub(mean_of_squares, squared_mean);
+        const result = arithmetic._power(difference, 0.5);
         if (axis === undefined) {
             return result.data[0];
         } else {
@@ -351,7 +352,7 @@ export class tensor {
      */
     variance(axis?: number): tensor | number {
         const std = this.stdev(axis);
-        const result = tensor._power(std, 0.5);
+        const result = arithmetic._power(std, 0.5);
         if (axis === undefined) {
             return result.data[0];
         } else {
@@ -880,33 +881,36 @@ export class tensor {
          * @param b - The value to add to the array.
          */
         add(b: Broadcastable): tensor {
-            return tensor._add(this, b);
+            return arithmetic._add(this, b);
         }
-
 
         /**
          * Subtract a broadcastable value from this.
          * @param {Broadcastable} b - Value to subtract.
          * @return {number | tensor}
          */
-        sub(b: Broadcastable) {
-            return tensor._sub(this, b);
+        sub(b: Broadcastable): tensor {
+            return arithmetic._sub(this, b);
         }
 
         /**
          * Multiply `this` by `b`.
          * @param b - A tensor to multiply by.
          */
-        mult(b: Broadcastable) {
-            return tensor._mult(this, b);
+        mult(b: Broadcastable): tensor {
+            return arithmetic._mult(this, b);
         }
 
         /**
          * Divide `this` by `b`.
          * @param b - A tensor to divide by.
          */
-        div(b: Broadcastable) {
-            return tensor._div(this, b);
+        div(b: Broadcastable): tensor {
+            return arithmetic._div(this, b);
+        }
+
+        mod(b: Broadcastable): tensor {
+            return arithmetic._mod(this, b);
         }
 
         /**
@@ -914,7 +918,7 @@ export class tensor {
          * @param {tensor} a  - The array to compare against.
          * @return {boolean}
          */
-        equals(a: tensor) {
+        equals(a: tensor): boolean {
             return tensor.equals(this, a);
         }
 
@@ -1124,61 +1128,6 @@ export class tensor {
         }
 
         /**
-         * Compute the sum of two arrays.
-         * output[i] = a[i] + [i].
-         * @param a
-         * @param b
-         * @return {number | tensor}
-         */
-        static _add(a: Broadcastable, b: Broadcastable) {
-            return tensor._binary_broadcast(a, b, (x, y) => x + y);
-        }
-
-        /**
-         * Subtract an array from another.
-         * output[i] = a[i] - b[i].
-         * @param {Broadcastable} a - The minuend.
-         * @param {Broadcastable} b - The subtrahend.
-         * @return {Broadcastable} - The element-wise difference.
-         */
-        static _sub(a: Broadcastable, b: Broadcastable): tensor {
-            return tensor._binary_broadcast(a, b, (x, y) => x - y);
-        }
-
-        /**
-         * Compute the Hadamard product of two arrays, i.e. the element-wise product of the two arrays.
-         * output[i] = a[i] * b[i].
-         * @param {Broadcastable} a - First factor.
-         * @param {Broadcastable} b - Second factor.
-         * @return {Broadcastable} - The element-wise product of the two inputs.
-         */
-        static _mult(a: Broadcastable, b: Broadcastable): tensor {
-            return tensor._binary_broadcast(a, b, (x, y) => x * y);
-        }
-
-        /**
-         * Compute the element-wise quotient of the two inputs.
-         * output[i] = a[i] / b[i].
-         * @param {Broadcastable} a - Dividend array.
-         * @param {Broadcastable} b - Divisor array.
-         * @return {Broadcastable}  - Quotient array.
-         */
-        static _div(a: Broadcastable, b: Broadcastable): tensor {
-            return tensor._binary_broadcast(a, b, (x, y) => x / y, 'float64');
-        }
-
-        /**
-         * Compute the element-wise power of two inputs
-         * @param {Broadcastable} a - Base array.
-         * @param {Broadcastable} b - Exponent array.
-         * @return {tensor}       - Result array.
-         * @private
-         */
-        static _power(a: Broadcastable, b: Broadcastable): tensor {
-            return tensor._binary_broadcast(a, b, (x, y) => Math.pow(x, y), 'float64');
-        }
-
-        /**
          * Compute the element-wise quotient of two arrays, rounding values up to the nearest integer.
          * @param {Broadcastable} a - Dividend array.
          * @param {Broadcastable} b - Divisor array.
@@ -1196,70 +1145,6 @@ export class tensor {
          */
         static _fdiv(a: Broadcastable, b: Broadcastable): tensor {
             return tensor._binary_broadcast(a, b, (x, y) => Math.floor(x / y));
-        }
-
-        /**
-         * Compute element-wise modulus of two arrays.
-         * @param {Broadcastable} a - First array.
-         * @param {Broadcastable} b - Second array.
-         * @return {tensor}       - Modulus array.
-         */
-        static _mod(a: Broadcastable, b: Broadcastable): tensor {
-            return tensor._binary_broadcast(a, b, (x, y) => x % y);
-        }
-
-        /**
-         * Compute element-wise less than.
-         * @param {tensor} a
-         * @param {tensor} b
-         */
-        static _lt(a: tensor, b: tensor) {
-            return tensor._binary_broadcast(a, b, (x, y) => +(x < y), 'uint8');
-        }
-
-        /**
-         * Compute element-wise greater than.
-         * @param {tensor} a
-         * @param {tensor} b
-         */
-        static _gt(a: Broadcastable, b: Broadcastable) {
-            return tensor._binary_broadcast(a, b, (x, y) => +(x > y), 'uint8');
-        }
-
-        /**
-         * Compute element-wise less than or equal to.
-         * @param {Broadcastable} a
-         * @param {Broadcastable} b
-         */
-        static _le(a: Broadcastable, b: Broadcastable) {
-            return tensor._binary_broadcast(a, b, (x, y) => +(x <= y), 'uint8');
-        }
-
-        /**
-         * Compute element-wise greater than or equal to.
-         * @param {Broadcastable} a
-         * @param {Broadcastable} b
-         */
-        static _ge(a: Broadcastable, b: Broadcastable) {
-            return tensor._binary_broadcast(a, b, (x, y) => +(x >= y), 'uint8');
-        }
-
-        /**
-         * Compute element-wise not equal to.
-         * @param {Broadcastable} a
-         * @param {Broadcastable} b
-         */
-        static _ne(a: Broadcastable, b: Broadcastable) {
-            return tensor._binary_broadcast(a, b, (x, y) => +(x !== y), 'uint8');
-        }
-
-        /**
-         * Compute element-wise equality.
-         * @param {Broadcastable} a
-         * @param {Broadcastable} b
-         */
-        static _eq(a: Broadcastable, b: Broadcastable) {
-            return tensor._binary_broadcast(a, b, (x, y) => +(x === y), 'uint8');
         }
 
     //#endregion OPERATIONS

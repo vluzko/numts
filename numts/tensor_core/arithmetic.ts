@@ -8,7 +8,7 @@ import {utils} from '../utils';
  * @return {tensor}           - The resulting tensor.
  * @
  */
-function _upcast_to_tensor(value: Broadcastable): tensor {
+export function _upcast_to_tensor(value: Broadcastable): tensor {
     let a_array;
     if (utils.is_numeric(value)) {
         a_array = tensor.array(new Float64Array([value]), new Uint32Array([1]), { disable_checks: true });
@@ -28,7 +28,7 @@ function _upcast_to_tensor(value: Broadcastable): tensor {
  * @return {[IterableIterator<number[]>, Uint32Array, string]}  - An iterator over that returns a tuple (a_i, b_i) of broadcasted values, the new shape, and the new dtype.
  * @
  */
-function _broadcast_by_index(a: Broadcastable, b: Broadcastable): [IterableIterator<[number, number, Uint32Array]>, Uint32Array, string] {
+export function _broadcast_by_index(a: Broadcastable, b: Broadcastable): [IterableIterator<[number, number, Uint32Array]>, Uint32Array, string] {
 
     let a_array = _upcast_to_tensor(a);
     let b_array = _upcast_to_tensor(b);
@@ -60,7 +60,7 @@ function _broadcast_by_index(a: Broadcastable, b: Broadcastable): [IterableItera
  * @return {tensor}  - The result of applying f to a and b.
  * @
  */
-function _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: number, b: number) => number, dtype?: string): tensor {
+export function _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: number, b: number) => number, dtype?: string): tensor {
     let [iter, shape, new_dtype] = _broadcast_by_index(a, b);
 
     if (dtype === undefined) {
@@ -83,7 +83,7 @@ function _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: number, b:
  * @param {Broadcastable} b -
  * @returns {tensor}      -
  */
-function broadcast_matmul(a: Broadcastable, b: Broadcastable): tensor {
+export function broadcast_matmul(a: Broadcastable, b: Broadcastable): tensor {
     let a_array = _upcast_to_tensor(a);
     let b_array = _upcast_to_tensor(b);
 
@@ -131,7 +131,7 @@ function broadcast_matmul(a: Broadcastable, b: Broadcastable): tensor {
  * @param {tensor} b  - The second array. Must be n x p.
  * @returns {tensor}  - The matrix product.
  */
-function matmul_2d(a: tensor, b: tensor): tensor {
+export function matmul_2d(a: tensor, b: tensor): tensor {
     const new_shape = new Uint32Array([a.shape[0], b.shape[1]]);
 
     let iter = {
@@ -158,7 +158,7 @@ function matmul_2d(a: tensor, b: tensor): tensor {
  * @param {tensor} b
  * @return {number}
  */
-function dot(a: tensor, b: tensor): number {
+export function dot(a: tensor, b: tensor): number {
     let acc = 0;
     let a_iter = a._iorder_value_iterator();
     let b_iter = b._iorder_value_iterator();
@@ -175,8 +175,8 @@ function dot(a: tensor, b: tensor): number {
  * @param {tensor} b  - Second array.
  * @return {tensor}   - An array with the same shape as a and b. Its entries are the max of the corresponding entries of a and b.
  */
-function take_max(a: tensor, b: tensor) {
-    return tensor._binary_broadcast(a, b, (x, y) => Math.max(x, y));
+export function take_max(a: tensor, b: tensor) {
+    return _binary_broadcast(a, b, (x, y) => Math.max(x, y));
 }
 
 /**
@@ -186,8 +186,8 @@ function take_max(a: tensor, b: tensor) {
  * @param {tensor} b  - Second array.
  * @return {tensor}   - An array with the same shape as a and b. Its entries are the min of the corresponding entries of a and b.
  */
-function take_min(a: tensor, b: tensor) {
-    return tensor._binary_broadcast(a, b, (x, y) => Math.min(x, y));
+export function take_min(a: tensor, b: tensor) {
+    return _binary_broadcast(a, b, (x, y) => Math.min(x, y));
 }
 
 /**
@@ -197,8 +197,8 @@ function take_min(a: tensor, b: tensor) {
  * @param b
  * @return {number | tensor}
  */
-function _add(a: Broadcastable, b: Broadcastable) {
-    return tensor._binary_broadcast(a, b, (x, y) => x + y);
+export function _add(a: Broadcastable, b: Broadcastable) {
+    return _binary_broadcast(a, b, (x, y) => x + y);
 }
 
 /**
@@ -208,8 +208,8 @@ function _add(a: Broadcastable, b: Broadcastable) {
  * @param {Broadcastable} b - The subtrahend.
  * @return {Broadcastable} - The element-wise difference.
  */
-function _sub(a: Broadcastable, b: Broadcastable): tensor {
-    return tensor._binary_broadcast(a, b, (x, y) => x - y);
+export function _sub(a: Broadcastable, b: Broadcastable): tensor {
+    return _binary_broadcast(a, b, (x, y) => x - y);
 }
 
 /**
@@ -219,8 +219,8 @@ function _sub(a: Broadcastable, b: Broadcastable): tensor {
  * @param {Broadcastable} b - Second factor.
  * @return {Broadcastable} - The element-wise product of the two inputs.
  */
-function _mult(a: Broadcastable, b: Broadcastable): tensor {
-    return tensor._binary_broadcast(a, b, (x, y) => x * y);
+export function _mult(a: Broadcastable, b: Broadcastable): tensor {
+    return _binary_broadcast(a, b, (x, y) => x * y);
 }
 
 /**
@@ -230,8 +230,8 @@ function _mult(a: Broadcastable, b: Broadcastable): tensor {
  * @param {Broadcastable} b - Divisor array.
  * @return {Broadcastable}  - Quotient array.
  */
-function _div(a: Broadcastable, b: Broadcastable): tensor {
-    return tensor._binary_broadcast(a, b, (x, y) => x / y, 'float64');
+export function _div(a: Broadcastable, b: Broadcastable): tensor {
+    return _binary_broadcast(a, b, (x, y) => x / y, 'float64');
 }
 
 /**
@@ -241,8 +241,8 @@ function _div(a: Broadcastable, b: Broadcastable): tensor {
  * @return {tensor}       - Result array.
  * @
  */
-function _power(a: Broadcastable, b: Broadcastable): tensor {
-    return tensor._binary_broadcast(a, b, (x, y) => Math.pow(x, y), 'float64');
+export function _power(a: Broadcastable, b: Broadcastable): tensor {
+    return _binary_broadcast(a, b, (x, y) => Math.pow(x, y), 'float64');
 }
 
 /**
@@ -251,8 +251,8 @@ function _power(a: Broadcastable, b: Broadcastable): tensor {
  * @param {Broadcastable} b - Divisor array.
  * @return {Broadcastable}  - Quotient array.
  */
-function _cdiv(a: Broadcastable, b: Broadcastable): tensor {
-    return tensor._binary_broadcast(a, b, (x, y) => Math.ceil(x / y));
+export function _cdiv(a: Broadcastable, b: Broadcastable): tensor {
+    return _binary_broadcast(a, b, (x, y) => Math.ceil(x / y));
 }
 
 /**
@@ -261,8 +261,8 @@ function _cdiv(a: Broadcastable, b: Broadcastable): tensor {
  * @param {Broadcastable} b - Divisor array.
  * @return {tensor}       - Quotient array.
  */
-function _fdiv(a: Broadcastable, b: Broadcastable): tensor {
-    return tensor._binary_broadcast(a, b, (x, y) => Math.floor(x / y));
+export function _fdiv(a: Broadcastable, b: Broadcastable): tensor {
+    return _binary_broadcast(a, b, (x, y) => Math.floor(x / y));
 }
 
 /**
@@ -271,8 +271,8 @@ function _fdiv(a: Broadcastable, b: Broadcastable): tensor {
  * @param {Broadcastable} b - Second array.
  * @return {tensor}       - Modulus array.
  */
-function _mod(a: Broadcastable, b: Broadcastable): tensor {
-    return tensor._binary_broadcast(a, b, (x, y) => x % y);
+export function _mod(a: Broadcastable, b: Broadcastable): tensor {
+    return _binary_broadcast(a, b, (x, y) => x % y);
 }
 
 /**
@@ -280,8 +280,8 @@ function _mod(a: Broadcastable, b: Broadcastable): tensor {
  * @param {tensor} a
  * @param {tensor} b
  */
-function _lt(a: tensor, b: tensor) {
-    return tensor._binary_broadcast(a, b, (x, y) => +(x < y), 'uint8');
+export function _lt(a: tensor, b: tensor) {
+    return _binary_broadcast(a, b, (x, y) => +(x < y), 'uint8');
 }
 
 /**
@@ -289,8 +289,8 @@ function _lt(a: tensor, b: tensor) {
  * @param {tensor} a
  * @param {tensor} b
  */
-function _gt(a: Broadcastable, b: Broadcastable) {
-    return tensor._binary_broadcast(a, b, (x, y) => +(x > y), 'uint8');
+export function _gt(a: Broadcastable, b: Broadcastable) {
+    return _binary_broadcast(a, b, (x, y) => +(x > y), 'uint8');
 }
 
 /**
@@ -298,8 +298,8 @@ function _gt(a: Broadcastable, b: Broadcastable) {
  * @param {Broadcastable} a
  * @param {Broadcastable} b
  */
-function _le(a: Broadcastable, b: Broadcastable) {
-    return tensor._binary_broadcast(a, b, (x, y) => +(x <= y), 'uint8');
+export function _le(a: Broadcastable, b: Broadcastable) {
+    return _binary_broadcast(a, b, (x, y) => +(x <= y), 'uint8');
 }
 
 /**
@@ -307,8 +307,8 @@ function _le(a: Broadcastable, b: Broadcastable) {
  * @param {Broadcastable} a
  * @param {Broadcastable} b
  */
-function _ge(a: Broadcastable, b: Broadcastable) {
-    return tensor._binary_broadcast(a, b, (x, y) => +(x >= y), 'uint8');
+export function _ge(a: Broadcastable, b: Broadcastable) {
+    return _binary_broadcast(a, b, (x, y) => +(x >= y), 'uint8');
 }
 
 /**
@@ -316,8 +316,8 @@ function _ge(a: Broadcastable, b: Broadcastable) {
  * @param {Broadcastable} a
  * @param {Broadcastable} b
  */
-function _ne(a: Broadcastable, b: Broadcastable) {
-    return tensor._binary_broadcast(a, b, (x, y) => +(x !== y), 'uint8');
+export function _ne(a: Broadcastable, b: Broadcastable) {
+    return _binary_broadcast(a, b, (x, y) => +(x !== y), 'uint8');
 }
 
 /**
@@ -325,6 +325,6 @@ function _ne(a: Broadcastable, b: Broadcastable) {
  * @param {Broadcastable} a
  * @param {Broadcastable} b
  */
-function _eq(a: Broadcastable, b: Broadcastable) {
-    return tensor._binary_broadcast(a, b, (x, y) => +(x === y), 'uint8');
+export function _eq(a: Broadcastable, b: Broadcastable) {
+    return _binary_broadcast(a, b, (x, y) => +(x === y), 'uint8');
 }
