@@ -15,8 +15,7 @@ describe('Basic operations.', () => {
         const py_str = call_python.call_python(op, [a_string, b_string])
         const py_value = numts.from_json(JSON.parse(py_str))
 
-        // console.log(py_value);
-        return numts_value.is_close(py_value)
+        return numts_value.is_close(py_value).all()
     };
     return f;
   }

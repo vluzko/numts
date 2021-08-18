@@ -1,5 +1,6 @@
 const numts = require('../../numts/numts');
 const binary_ops = require('../../numts/tensor_core/binary_ops');
+const call_python = require('../call_python');
 const tensor = numts.tensor;
 
 describe('binary_broadcast.', function() {
@@ -82,10 +83,29 @@ describe('arithmetic.', function () {
         let expected = numts.from_nested_array([[0, 1, 1, 1, 1], [5, 3, 3, 2, 2]], 'int32');
         expect(product.equals(expected)).toBe(true);
     });
+
+    describe('Regression failures.', function () {
+
+        test('_add failure. 2021-08-21', function () {
+            const shape = [1, 4];
+            const a = numts.from_iterable([0, 4.172325134277344e-7, 0.47082263231277466, 5.960464477539062e-7], shape);
+            const b = numts.from_iterable([0, 4.172325134277344e-7, 0.47082263231277466, 5.960464477539062e-7], shape);
+
+            const numts_value = binary_ops._add(a, b);
+
+            const a_string = JSON.stringify(a.to_json());
+            const b_string = JSON.stringify(b.to_json());
+            const py_str = call_python.call_python('_add', [a_string, b_string])
+            const py_value = numts.from_json(JSON.parse(py_str))
+
+            const result = numts_value.is_close(py_value)
+            expect(result.all()).toBe(true);
+        })
+    })
 });
 
 describe('boolean.', function () {
-    
+
 })
 
 describe('Linalg ops.', function () {
