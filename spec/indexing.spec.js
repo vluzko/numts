@@ -276,7 +276,7 @@ describe('slice.', function () {
     const slice = base_array.slice(0);
     const expected = numts.arange(4);
 
-    const actual = tensor.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
+    const actual = numts.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
     expect(expected.equals(actual)).toBe(true);
     expect(slice.data).toEqual(base_array.data);
   });
@@ -289,7 +289,7 @@ describe('slice.', function () {
 
     const expected = numts.arange(1, 3);
 
-    const actual = tensor.from_iterable(second_slice._iorder_value_iterator(), second_slice.shape, 'int32');
+    const actual = numts.from_iterable(second_slice._iorder_value_iterator(), second_slice.shape, 'int32');
     expect(expected.equals(actual)).toBe(true);
   });
 
@@ -301,7 +301,7 @@ describe('slice.', function () {
       [1, 2],
       [9, 10]
     ], 'int32');
-    const actual = tensor.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
+    const actual = numts.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
 
     expect(expected.equals(actual)).toBe(true);
 
@@ -317,7 +317,7 @@ describe('slice.', function () {
     ], 'int32');
 
 
-    const actual = tensor.from_iterable(first._iorder_value_iterator(), first.shape, 'int32');
+    const actual = numts.from_iterable(first._iorder_value_iterator(), first.shape, 'int32');
     expect(expected).toEqual(actual);
   });
 
@@ -334,7 +334,7 @@ describe('slice.', function () {
       [[66, 69]]
     ], 'int32');
 
-    const actual = tensor.from_iterable(second._iorder_value_iterator(), second.shape, 'int32');
+    const actual = numts.from_iterable(second._iorder_value_iterator(), second.shape, 'int32');
     expect(expected.equals(actual)).toBe(true);
   });
 
