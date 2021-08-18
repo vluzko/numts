@@ -1,8 +1,8 @@
 import {tensor} from "./tensor";
-import {zeros, ones, arange, from_nested_array, eye} from './tensor_core/constructors';
+import {array, zeros, ones, arange, from_nested_array, eye, from_iterable} from './tensor_core/constructors';
 
 
-export {zeros, ones, arange, from_nested_array, eye};
+export {array, zeros, ones, arange, from_nested_array, eye, from_iterable};
 
 
 export {tensor as tensor};
