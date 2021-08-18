@@ -1,5 +1,5 @@
 const fc = require('fast-check');
-const tensor = require('../../numts/tensor').tensor;
+const numts = require('../../numts/numts');
 const indexing = require('../../numts/indexing').indexing;
 
 const BROADCAST_ONE_DIM_PROB = 0.1;
@@ -74,8 +74,8 @@ const broadcastable = small_matrix.chain(
  */
 function check_arrays(f) {
   const check = ([[data_1, shape_1], [data_2, shape_2]]) => {
-    const a = tensor.from_iterable(data_1, shape_1);
-    const b = tensor.from_iterable(data_2, shape_2);
+    const a = numts.from_iterable(data_1, shape_1);
+    const b = numts.from_iterable(data_2, shape_2);
     return f(a, b);
   };
 
@@ -88,7 +88,7 @@ function check_arrays(f) {
 
 function check_random_array(f) {
   const check = ([data, shape]) => {
-    const a = tensor.from_iterable(data, shape);
+    const a = numts.from_iterable(data, shape);
     return f(a);
   }
   const params = {
@@ -110,7 +110,7 @@ function check_matrix(f, filter = '') {
   };
 
   const check = ([data, shape]) => {
-    const a = tensor.from_iterable(data, shape);
+    const a = numts.from_iterable(data, shape);
     return f(a);
   }
 

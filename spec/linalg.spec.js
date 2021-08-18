@@ -69,7 +69,7 @@ describe('Decompositions.', () =>  {
             const prod = tensor.matmul_2d(q, r);
 
             const inv_prod = tensor.matmul_2d(q, q.transpose());
-            const expected = tensor.eye(m);
+            const expected = numts.eye(m);
             expect(inv_prod.is_close(expected).all()).toBe(true);
             expect(a.is_close(prod).all()).toBe(true);
         });
@@ -83,7 +83,7 @@ describe('Decompositions.', () =>  {
                         [4, 9, 14],
                         [5, 10, 15]
                     ]);
-                    const q = linalg.householder_vector(a, 3, 0);
+                    const [q, _] = linalg.householder_col_vector(a, 3, 0);
                     expect(q.shape.length).toBe(2);
                     const [i, j] = q.shape;
                     expect(i).toBe(5 - 3);
@@ -175,7 +175,7 @@ describe('Decompositions.', () =>  {
                 const [q, r] = linalg.qr(a, {algorithm: 'householder'});
                 
                 const inv_prod = tensor.matmul_2d(q, q.transpose());
-                expect(inv_prod.is_close(tensor.eye(2)).all()).toBe(true);
+                expect(inv_prod.is_close(numts.eye(2)).all()).toBe(true);
                 const qr_prod = tensor.matmul_2d(q, r);
                 expect(qr_prod.is_close(a).all()).toBe(true);
                 });
@@ -190,7 +190,7 @@ describe('Decompositions.', () =>  {
                 const [q, r] = linalg.qr(a, {algorithm: 'householder'});
                 
                 const inv_prod = tensor.matmul_2d(q, q.transpose());
-                expect(inv_prod.is_close(tensor.eye(3)).all()).toBe(true);
+                expect(inv_prod.is_close(numts.eye(3)).all()).toBe(true);
                 const qr_prod = tensor.matmul_2d(q, r);
                 expect(qr_prod.is_close(a).all()).toBe(true);
                 });
@@ -199,7 +199,7 @@ describe('Decompositions.', () =>  {
     });
 
     describe('Singular value decomposition.', function() {
-        fit('Basic test.', () => {
+        it('Basic test.', () => {
             const a = numts.from_nested_array([
                 [1, 2, 3, 4],
                 [3.5, 2.7, -1, 2],

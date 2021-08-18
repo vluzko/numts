@@ -1,7 +1,7 @@
-const fc = require('fast-check');
-const tensor = require("../numts/tensor").tensor;
-const numts = require("../numts/numts");
-const linalg = require("../numts/linalg");
+const tensor = require("../../numts/tensor").tensor;
+const binary_ops = require("../../numts/tensor_core/binary_ops");
+const numts = require("../../numts/numts");
+const linalg = require("../../numts/linalg");
 const helpers = require('./helpers');
 
 describe('Decompositions.', () => {
@@ -18,7 +18,7 @@ describe('Decompositions.', () => {
                 // Check that q is orthogonal
                 const t = q.transpose();
                 const inv_prod = tensor.matmul_2d(q, t);
-                const expected = tensor.eye(m);
+                const expected = numts.eye(m);
                 expect(inv_prod.is_close(expected).all()).toBe(true);
     
                 // Check that the product is correct
@@ -38,7 +38,7 @@ describe('Decompositions.', () => {
                 // Check that q is orthogonal
                 const t = q.transpose();
                 const inv_prod = tensor.matmul_2d(q, t);
-                const expected = tensor.eye(m);
+                const expected = numts.eye(m);
                 if (!inv_prod.is_close(expected).all()) throw new Error('Inverse prod not identity')
 
                 // Check that the product is correct
@@ -48,7 +48,7 @@ describe('Decompositions.', () => {
                 // Check that R is upper triangular
                 const [mr, nr] = r.shape;
                 for (let i = 0; i < mr - 1; i++) {
-                    const zero_vec = tensor.zeros([mr - i - 1], 1);
+                    const zero_vec = numts.zeros([mr - i - 1], 1);
                     const slice = r.slice([i+1, null], i);
                     if (!zero_vec.is_close(slice)) {throw new Error('R is not upper triangular.')}
                 }
@@ -71,15 +71,15 @@ describe('Decompositions.', () => {
             test('Thin matrices.', function() {
                 function f(a) {
                     const [m, ] = a.shape;
-                    const q = linalg.householder_col_transform(a, m-2, 0);
+                    const [q, _] = linalg.householder_col_vector(a, m-2, 0);
 
                     const col_slice = q.slice([m-2, null], 0);
-                    const expected = tensor.zeros([m-2, 1]);
-                    if (!(col_slice.isclose(expected).all())) throw new Error('not zeroed')
+                    const expected = numts.zeros([m-2, 1]);
+                    if (!(col_slice.is_close(expected).all())) throw new Error('not zeroed')
                     // // Check that q is orthogonal
                     // const t = q.transpose();
                     // const inv_prod = tensor.matmul_2d(q, t);
-                    // const expected = tensor.eye(m);
+                    // const expected = numts.eye(m);
                     // if (!inv_prod.is_close(expected).all()) throw new Error('Inverse prod not identity')
 
                     // // Check that the product is correct

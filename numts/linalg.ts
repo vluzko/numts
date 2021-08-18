@@ -150,6 +150,7 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
     const epsilon = 0.00001
     let done = false;
     while (!done) {
+        throw Error('Not implemented: core SVD loop');
         // Zero out small superdiagonal entries
 
         // Sweep
@@ -157,7 +158,6 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
     // Use Givens rotations to diagonalize s.
     // let givens: tensor;
     // for (let i = 0; i < m-1; i++) {
-    //     console.log(`Row: ${i}`);
     //     // if (i == 2) debugger;
     //     // Skip this row if it's already zeroed
     //     if (s.g(i, i+1) == 0) {
@@ -169,7 +169,6 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
 
     //         // Eliminate new entry under diagonal
     //         [givens, s] = givens_rotation_up(s, i, i+1);
-    //         // console.log(s.g(i+1, i))
 
     //         u = tensor.matmul_2d(u, givens);
     //     }
@@ -550,7 +549,7 @@ function givens_qr(A: tensor): [tensor, tensor] {
 }
 
 /**
- * 
+ * Use Givens rotation to zero out a column entry against its diagonal.
  * @param A - The matrix to perform the rotation on.
  * @param i - The row to rotate to.
  * @param j - The row to rotate from, and the column.
@@ -559,19 +558,14 @@ export function givens_rotation_up(A: tensor, i: number, j: number): [tensor, te
     // debugger;
     const bottom_val = A.g(j, i);
     const top_val = A.g(i, i);
-    // const r = Math.sqrt(Math.pow(bottom_val, 2) + Math.pow(top_val, 2));
-    // const s = bottom_val / r;
-    // const c = top_val / r;
     const [c, s] = givens_values(top_val, bottom_val);
-    const [m, n] = A.shape;
+    const [m, _] = A.shape;
     let G = eye(m);
     G.s(c, i, i);
     G.s(c, j, j);
     G.s(-s, i, j);
     G.s(s, j, i);
-    // console.log(G.to_nested_array())
     const R = tensor.matmul_2d(G, A);
-    console.log(R.to_nested_array());
     return [G, R];
 }
 
@@ -602,18 +596,7 @@ export function givens_rotation_row(A: tensor, i: number, j: number): [tensor, t
 
         R = tensor.matmul_2d(A, G);
     }
-    console.log(R.to_nested_array());
     return [G, R];
-
-    // const r = Math.sqrt(Math.pow(right_val, 2) + Math.pow(diagonal, 2));
-    // const s = right_val / r;
-    // const c = diagonal / r;
-    // let G = eye(m);
-
-
-    // // TODO: Optimization: This can be much more efficient, most of the multiplications can be skipped.
-    // console.log(R.to_nested_array())
-    // return [G, R];
 }
 
 /**
