@@ -1,5 +1,5 @@
 import { tensor } from "./tensor";
-import { zeros } from "./numts";
+import { zeros, eye } from "./numts";
 
 //#region utils
 /**
@@ -150,6 +150,7 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
     const epsilon = 0.00001
     let done = false;
     while (!done) {
+        throw Error('Not implemented: core SVD loop');
         // Zero out small superdiagonal entries
 
         // Sweep
@@ -158,7 +159,6 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
     // Use Givens rotations to diagonalize s.
     // let givens: tensor;
     // for (let i = 0; i < m-1; i++) {
-    //     console.log(`Row: ${i}`);
     //     // if (i == 2) debugger;
     //     // Skip this row if it's already zeroed
     //     if (s.g(i, i+1) == 0) {
@@ -170,7 +170,6 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
 
     //         // Eliminate new entry under diagonal
     //         [givens, s] = givens_rotation_up(s, i, i+1);
-    //         // console.log(s.g(i+1, i))
 
     //         u = tensor.matmul_2d(u, givens);
     //     }
@@ -277,7 +276,7 @@ export function sym_qr(a: tensor): [tensor, tensor] {
  */
 function householder_qr(A: tensor) {
     const [m, n] = A.shape;
-    let Q = tensor.eye(m);
+    let Q = eye(m);
     let R = A.as_type('float64');
     if (m === 1 && n === 1) {
         return [Q, R];
@@ -377,7 +376,7 @@ function compute_householder(vec: tensor, pivot: number): [tensor, number] {
  * Calculate the full Householder transformation for a column.
  */
 export function full_h_col_matrix(w: tensor, m: number, beta: number): tensor {
-    let h = tensor.eye(m);
+    let h = eye(m);
     const [i, _] = w.shape;
     const squared = tensor.matmul_2d(w, w.transpose());
     const w_beta = squared.mult(beta);
@@ -392,7 +391,7 @@ export function full_h_col_matrix(w: tensor, m: number, beta: number): tensor {
  * Calculate the full Householder transformation for a row
  */
 export function full_h_row_matrix(w: tensor, m: number, beta: number): tensor {
-    let h = tensor.eye(m);
+    let h = eye(m);
     const [_, j] = w.shape;
     const squared = tensor.matmul_2d(w.transpose(), w);
     const w_beta = squared.mult(beta);
@@ -417,8 +416,8 @@ export function householder_bidiagonal(original: tensor): [tensor, tensor, tenso
     const [m, n] = a.shape;
     if (m < n) {throw new Error(`SVD needs a tall triangular matrix. Got (${m}, ${n})`);}
 
-    let u = tensor.eye(m);
-    let v = tensor.eye(n);
+    let u = eye(m);
+    let v = eye(n);
 
     for (let col = 0; col < n; col++) {
 
@@ -430,7 +429,7 @@ export function householder_bidiagonal(original: tensor): [tensor, tensor, tenso
         const w_square = tensor.matmul_2d(w, w.transpose()).mult(beta);
         // Householder matrix to zero out col.
         // TODO: Optimization: Compute the Householder matrix as it's being created.
-        let householder_matrix = tensor.eye(m - col);
+        let householder_matrix = eye(m - col);
         const diff = householder_matrix.sub(w_square);
         householder_matrix.s(diff, [0, null], [0, null])
         const a_col_slice = a.slice([col, null], [col, null]);
@@ -442,7 +441,7 @@ export function householder_bidiagonal(original: tensor): [tensor, tensor, tenso
         // Householder matrix are just an identity matrix means this can be optimized.
         // The first (col - 1) columns of u will not be updated by this.
         // (This may change if doing fat matrices, I'm not sure)
-        let full_house_m = tensor.eye(m);
+        let full_house_m = eye(m);
         full_house_m.s(householder_matrix, [col, null], [col, null]);
         u = tensor.matmul_2d(u, full_house_m);
 
@@ -450,7 +449,7 @@ export function householder_bidiagonal(original: tensor): [tensor, tensor, tenso
         if (col <= n - 2) {
             const [w, beta] = householder_row_vector(a, col, col+1);
             const w_square = tensor.matmul_2d(w.transpose(), w).mult(beta);
-            let householder_matrix = tensor.eye(n - col);
+            let householder_matrix = eye(n - col);
             const householder_slice = householder_matrix.slice([1, null], [1, null]);
             householder_matrix.s(householder_slice.sub(w_square), [1, null], [1, null])
             const a_col_slice = a.slice([col, null], [col, null]);
@@ -544,14 +543,14 @@ function givens_qr(A: tensor): [tensor, tensor] {
 
     // Handle one-dimensional arrays.
     if (Q === null) {
-        Q = tensor.eye(m);
+        Q = eye(m);
     }
 
     return [Q.transpose(), R];
 }
 
 /**
- * 
+ * Use Givens rotation to zero out a column entry against its diagonal.
  * @param A - The matrix to perform the rotation on.
  * @param i - The row to rotate to.
  * @param j - The row to rotate from, and the column.
@@ -560,19 +559,14 @@ export function givens_rotation_up(A: tensor, i: number, j: number): [tensor, te
     // debugger;
     const bottom_val = A.g(j, i);
     const top_val = A.g(i, i);
-    // const r = Math.sqrt(Math.pow(bottom_val, 2) + Math.pow(top_val, 2));
-    // const s = bottom_val / r;
-    // const c = top_val / r;
     const [c, s] = givens_values(top_val, bottom_val);
-    const [m, n] = A.shape;
-    let G = tensor.eye(m);
+    const [m, _] = A.shape;
+    let G = eye(m);
     G.s(c, i, i);
     G.s(c, j, j);
     G.s(-s, i, j);
     G.s(s, j, i);
-    // console.log(G.to_nested_array())
     const R = tensor.matmul_2d(G, A);
-    console.log(R.to_nested_array());
     return [G, R];
 }
 
@@ -589,7 +583,7 @@ export function givens_rotation_row(A: tensor, i: number, j: number): [tensor, t
     const diagonal = A.g(i, i);
     // b in G & vL
     const right_val = A.g(i, j);
-    let G = tensor.eye(m);
+    let G = eye(m);
     let R: tensor;
     if (right_val == 0) {
         R = tensor.copy(A);
@@ -603,18 +597,7 @@ export function givens_rotation_row(A: tensor, i: number, j: number): [tensor, t
 
         R = tensor.matmul_2d(A, G);
     }
-    console.log(R.to_nested_array());
     return [G, R];
-
-    // const r = Math.sqrt(Math.pow(right_val, 2) + Math.pow(diagonal, 2));
-    // const s = right_val / r;
-    // const c = diagonal / r;
-    // let G = tensor.eye(m);
-
-
-    // // TODO: Optimization: This can be much more efficient, most of the multiplications can be skipped.
-    // console.log(R.to_nested_array())
-    // return [G, R];
 }
 
 /**

@@ -1,15 +1,15 @@
 {
-  "name": "@vluzko/tndarray",
+  "name": "@vluzko/numts",
   "version": "0.0.1",
   "description": "Typed n-dimensional arrays",
   "scripts": {
-    "prop": "jest prop_spec --config prop_spec/jest_config.json",
-    "test": "jest",
+    "prop": "jest spec/prop_spec --config spec/prop_spec/jest_config.json",
+    "test": "jest spec --config spec/jest_config.json",
     "debug": "node --inspect-brk $(which jest) --runInBand"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vluzko/tndarray.git"
+    "url": "git+https://github.com/vluzko/numts.git"
   },
   "keywords": [
     "math",
@@ -19,9 +19,9 @@
   "author": "Vincent Luczkow",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/vluzko/tndarray/issues"
+    "url": "https://github.com/vluzko/numts/issues"
   },
-  "homepage": "https://github.com/vluzko/tndarray#readme",
+  "homepage": "https://github.com/vluzko/numts#readme",
   "dependencies": {
     "typescript": "^3.5.3"
   },

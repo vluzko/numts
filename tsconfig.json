@@ -11,7 +11,7 @@
     "suppressImplicitAnyIndexErrors": true
   },
   "include": [
-    "numts/*.ts",
+    "numts/**/*.ts",
     "spec/prop_spec/*.ts",
     "spec/*.ts"
   ],

@@ -1,5 +1,5 @@
 import {execSync} from 'child_process';
-import {tensor} from '../../numts/tensor';
+import {tensor} from '../numts/tensor';
 
 const FILE = `${__dirname}/numpy_tests.py`;
 
