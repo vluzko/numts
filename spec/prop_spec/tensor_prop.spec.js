@@ -32,5 +32,19 @@ describe('Basic operations.', () => {
         helpers.check_arrays(check_op('_mult'));
     })
 
-    // test('Array division.')
+    test('Array division.', () => {
+        helpers.check_with_non_zero(check_op('_div'))
+    })
+
+    test('Array ceiling division.', () => {
+        helpers.check_with_non_zero(check_op('_cdiv'))
+    })
+
+    test('Array floor division.', () => {
+        helpers.check_with_non_zero(check_op('_fdiv'))
+    })
+
+    test('Array modulus.', () => {
+        helpers.check_with_non_zero(check_op('_mod'))
+    })
 });
