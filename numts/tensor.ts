@@ -4,7 +4,7 @@ import * as arithmetic from './tensor_core/binary_ops';
 import * as constructors from './tensor_core/constructors';
 import new_shape_from_axis = indexing.new_shape_from_axis;
 
-type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
+export type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
 type Numeric = TypedArray | number[];
 export type Broadcastable = number | TypedArray | tensor | number[];
 export type Shape = number[] | Uint32Array;
