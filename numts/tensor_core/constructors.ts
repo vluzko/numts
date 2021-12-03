@@ -113,7 +113,7 @@ export function zeros(shape, dtype?: string): tensor {
  */
 export function ones(shape: number[] | Uint32Array, dtype?: string): tensor {
     return filled(1, shape, dtype);
-  }
+}
 
 /**
  * Create an identity matrix of a given size.
@@ -221,4 +221,4 @@ export function arange(start_or_stop: number, stop?: number, step?: number, shap
     let real_stop = stop < start ? -stop : stop;
   
     return from_iterable(iter, shape, "int32");
-  }
+}

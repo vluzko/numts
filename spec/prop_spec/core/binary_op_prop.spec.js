@@ -1,8 +1,8 @@
-const call_python = require('../call_python');
-const tensor = require('../../numts/tensor').tensor;
-const binary_ops = require("../../numts/tensor_core/binary_ops");
-const numts = require('../../numts/numts');
-const helpers = require('./helpers');
+const call_python = require('../../call_python');
+const tensor = require('../../../numts/tensor').tensor;
+const binary_ops = require("../../../numts/tensor_core/binary_ops");
+const numts = require('../../../numts/numts');
+const helpers = require('../helpers');
 
 
 describe('Basic operations.', () => {

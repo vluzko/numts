@@ -1,11 +1,8 @@
 const numts = require('../numts/numts');
 const errors = require('../numts/tensor').errors;
 const tensor = numts.tensor;
-const binary_ops = require('../numts/tensor_core/binary_ops');
-const utils = require('../numts/utils').utils;
 
-describe('Constructors and factories.', function () {
-  describe('Shapes.', function () {
+describe('Shapes.', function () {
 
     class Sample {
       constructor(input_array, input_shape, expected) {
@@ -75,97 +72,8 @@ describe('Constructors and factories.', function () {
     });
   });
 
-  describe('zeros.', function() {
 
-  });
-
-  describe('eye.', function() {
-    it('Two-dimensional', function() {
-      const a = numts.eye(10);
-      for (let [i, j] of a._iorder_index_iterator()) {
-        if (i === j) {
-          expect(a.g(i, j)).toBe(1);
-        } else {
-          expect(a.g(i, j)).toBe(0);
-        }
-      }
-    });
-  });
-
-  describe('filled.', function() {
-    it('Column vector.', function() {
-      const a = numts.arange(4).reshape(4, 1);
-      expect(a.stride).toEqual(new Uint32Array([1, 4]));
-      const arr = [...a._iorder_data_iterator()];
-      expect(arr).toEqual([0, 1, 2, 3]);
-    });
-  });
-
-  describe("from_nested_array.", function () {
-
-    it("hand array.", function () {
-      let nested = [[[0, 1], [2, 3]], [[4, 5], [6, 7]]];
-      let tensor = numts.from_nested_array(nested);
-      expect(tensor.shape).toEqual(new Uint32Array([2, 2, 2]));
-      expect(tensor.g(0, 0, 0)).toBe(0);
-      expect(tensor.g(0, 0, 1)).toBe(1);
-      expect(tensor.g(0, 1, 0)).toBe(2);
-      expect(tensor.g(0, 1, 1)).toBe(3);
-      expect(tensor.g(1, 0, 0)).toBe(4);
-      expect(tensor.g(1, 0, 1)).toBe(5);
-      expect(tensor.g(1, 1, 0)).toBe(6);
-      expect(tensor.g(1, 1, 1)).toBe(7);
-
-    });
-
-    it("larger array", function () {
-      // Create nested array with dimensions 3 x 2 x 3 x 5
-      let nested = [1, 2, 3].map(
-        x => [x, x+1].map(
-          y => [y, y+1, y+2, y+3].map(
-            z => [y + 2, y+3, y+4, y+5, y+6]
-          ),
-        ),
-      );
-
-      let good_nested = numts.from_nested_array(nested);
-      expect(good_nested.shape).toEqual(new Uint32Array([3, 2, 4, 5]));
-      for (let indices of good_nested._iorder_index_iterator()) {
-        let expected = utils._nested_array_value_from_index(nested, indices);
-        let actual = good_nested.g(...indices);
-        expect(actual).toBe(expected, `index: ${indices}`);
-
-        expected = nested[indices[0]][indices[1]][indices[2]][indices[3]];
-        actual = good_nested.g(...indices);
-        expect(actual).toBe(expected, `index: ${indices}`);
-      }
-      expect(nested[0][0][0][0]).toBe(good_nested.g(0, 0, 0, 0));
-      expect(nested[2][0][0][0]).toBe(good_nested.g(2, 0, 0, 0));
-    });
-  });
-
-  describe('to_nested_array.', function() {
-    it('Basic.', function() {
-      let x = numts.arange(10).reshape(2, 5);
-      let y = x.to_nested_array();
-      expect(y).toEqual([
-        [0, 1, 2, 3, 4],
-        [5, 6, 7, 8, 9]
-      ]);
-    });
-  });
-
-  describe('to_json.', function() {
-
-  });
-
-  describe('from_json', function() {
-
-  });
-
-});
-
-describe('Indices.', function () {
+  describe('Indices.', function () {
   it('_compute_real_index.', function () {
     expect(numts.zeros([2, 2])._compute_real_index([1, 1])).toBe(3);
     expect(numts.zeros([2, 3, 4, 5]));
@@ -201,6 +109,17 @@ describe('Indices.', function () {
     });
   });
 
+});
+
+describe('to_nested_array.', function() {
+    it('Simple.', function() {
+        let x = constructors.arange(10).reshape(2, 5);
+        let y = x.to_nested_array();
+        expect(y).toEqual([
+            [0, 1, 2, 3, 4],
+            [5, 6, 7, 8, 9]
+        ]);
+    });
 });
 
 describe('Iterators.', function () {

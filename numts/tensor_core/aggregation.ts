@@ -105,6 +105,6 @@ export function _min(a: tensor, axis?: number): tensor | number {
  * @param {number} axis - The axis to sum over.
  * @return {tensor | number}
  */
- export function _sum(a: tensor, axis?: number): tensor | number {
+export function _sum(a: tensor, axis?: number): tensor | number {
     return a.reduce((a, e) => a + e, 0, axis);
 }
