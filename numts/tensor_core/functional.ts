@@ -2,18 +2,6 @@ import {tensor, TypedArray} from '../tensor';
 import * as constructors from './constructors';
 import {indexing} from '../indexing';
 
-
-/**
- * Map the array.
- * @param f
- * @return {tensor}
- */
-export function _map(a: tensor, f): tensor {
-    const new_data = a.data.map(f);
-    return constructors.array(new_data, a.shape, { disable_checks: true, dtype: a.dtype })
-}
-
-
 /**
  * Accumulating map over the entire array or along a particular axis.
  * If no axis is provided a flat array is returned.
@@ -95,6 +83,16 @@ export function _apply_to_axis(a: tensor, f: (a: TypedArray | number[]) => any, 
 
         return new_array;
     }
+}
+
+/**
+ * Map the array.
+ * @param f
+ * @return {tensor}
+ */
+export function _map(a: tensor, f): tensor {
+    const new_data = a.data.map(f);
+    return constructors.array(new_data, a.shape, { disable_checks: true, dtype: a.dtype })
 }
 
 /**
