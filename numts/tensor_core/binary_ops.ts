@@ -329,3 +329,10 @@ export function _ne(a: Broadcastable, b: Broadcastable) {
 export function _eq(a: Broadcastable, b: Broadcastable) {
     return _binary_broadcast(a, b, (x, y) => +(x === y), 'uint8');
 }
+
+export function is_close(a: tensor, b: tensor, rel_tol: number = 1e-5, abs_tol: number = 1e-8): tensor {
+    const compare = (x: number, y: number): number => {
+        return +(Math.abs(x - y) <= abs_tol + (rel_tol * Math.abs(y)));
+    }
+    return _binary_broadcast(a, b, compare);
+}

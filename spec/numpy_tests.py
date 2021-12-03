@@ -43,8 +43,33 @@ def _add(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 
 
 @to_console
-def hello():
-    print("Hello")
+def _sub(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    return a - b
+
+
+@to_console
+def _mult(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    return a * b
+
+
+@to_console
+def _div(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    return a / b
+
+
+@to_console
+def _mod(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    return a % b
+
+
+@to_console
+def _fdiv(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    return np.floor_divide(a, b)
+
+
+@to_console
+def _cdiv(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    return np.ceil(a / b)
 
 
 if __name__ == "__main__":

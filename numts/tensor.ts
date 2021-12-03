@@ -1,10 +1,13 @@
 import { utils } from './utils';
 import { indexing } from './indexing';
 import * as arithmetic from './tensor_core/binary_ops';
+import * as aggregation from './tensor_core/aggregation';
 import * as constructors from './tensor_core/constructors';
+import * as functional from './tensor_core/functional';
+import * as transformations from './tensor_core/transformations';
 import new_shape_from_axis = indexing.new_shape_from_axis;
 
-type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
+export type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
 type Numeric = TypedArray | number[];
 export type Broadcastable = number | TypedArray | tensor | number[];
 export type Shape = number[] | Uint32Array;
@@ -101,21 +104,12 @@ export class tensor {
         this.initial_offset = initial_offset === undefined ? 0 : initial_offset;
         this.is_view = is_view === undefined ? false : is_view;
     }
-    argmax() { }
-
-    argmin() { }
-
-    argpartition() { }
-
-    argsort() { }
 
     /**
      * Return a copy of the tensor cast to the specified type.
      */
     as_type(dtype: string): tensor {
-        const array_type = utils.dtype_map(dtype);
-        const new_data = new array_type(this.data.slice(0));
-        return new tensor(new_data, this.shape.slice(0), this.offset.slice(0), this.stride.slice(0), this.dstride.slice(0), this.length, dtype, this.is_view, this.initial_offset);
+        return transformations._as_type(this, dtype);
     }
 
     /**
@@ -124,24 +118,16 @@ export class tensor {
      * @param upper - The upper bound of the range.
      */
     clip(lower: number, upper: number): tensor {
-        return this.map(e => {
-            if (e < lower) {
-                return lower;
-            } else if (e > upper) {
-                return upper;
-            } else {
-                return e;
-            }
-        });
+        return transformations._clip(this, lower, upper);
     }
 
     /**
      * The cumulative product along the given axis.
      * @param {number} axis
      * @param {string} dtype
-     * @return {number | tensor}
+     * @return {tensor | number}
      */
-    cumprod(axis?: number, dtype?: string): number | tensor {
+    cumprod(axis?: number, dtype?: string): tensor | number {
         return this.accum_map((acc, b) => acc * b, axis, 1, dtype);
     }
 
@@ -150,7 +136,7 @@ export class tensor {
      * @param {number} axis
      * @param {string} dtype
      */
-    cumsum(axis?: number, dtype?: string): number | tensor {
+    cumsum(axis?: number, dtype?: string): tensor | number {
         return this.accum_map((acc, b) => acc + b, axis, undefined, dtype);
     }
 
@@ -158,18 +144,6 @@ export class tensor {
 
     dot(b: tensor) {
         return tensor.dot(this, b);
-    }
-
-    /**
-     * Fill the array with the given value, in-place.
-     * @param {number} value  - The value to fill the array with
-     * @return {tensor}     - The filled array.
-     */
-    fill(value: number) {
-        for (let i = 0; i < this.data.length; i++) {
-            this.data[i] = value;
-        }
-        return this;
     }
 
     //#region METHOD CONSTRUCTORS
@@ -180,26 +154,7 @@ export class tensor {
          * @return {tensor}             - The reshaped array.
          */
         reshape(...new_shape: Array<Uint32Array | number[] | number>): tensor {
-            let shape: Uint32Array | number[];
-            if (utils.is_numeric_array(new_shape[0])) {
-                // @ts-ignore
-                shape = new_shape[0];
-            } else {
-                // @ts-ignore
-                shape = new_shape;
-            }
-
-            if (Array.isArray(shape)) {
-                shape = new Uint32Array(shape);
-            }
-
-            const new_size = indexing.compute_size(shape);
-            const size = indexing.compute_size(this.shape);
-            if (size !== new_size) {
-                throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${shape}`);
-            }
-            let value_iter = this._iorder_value_iterator();
-            return constructors.from_iterable(value_iter, shape, this.dtype);
+            return transformations._reshape(this, ...new_shape);
         }
 
         /**
@@ -207,60 +162,35 @@ export class tensor {
          * @returns - The flattened array
          */
         flatten(): tensor {
-            const shape = new Uint32Array([this.length]);
-            return constructors.from_iterable(this._iorder_value_iterator(), shape, this.dtype);
+            return transformations._flatten(this);
         }
 
         /**
          * Returns the negation of this array.
          */
         neg(): tensor {
-            const new_data = this.data.map(x => -x);
-            return constructors.array(new_data, this.shape, { disable_checks: true, dtype: this.dtype });
+            return transformations._neg(this);
         }
 
         /**
          * Return the transpose of this array.
          */
         transpose(): tensor {
-            const new_shape = this.shape.slice(0).reverse();
-            let new_array = constructors.zeros(new_shape, this.dtype);
-            for (let index of this._iorder_index_iterator()) {
-                const value = this.g(...index);
-                const new_index = index.reverse();
-                new_array.s(value, ...new_index);
-            }
-            return new_array;
+            return transformations._transpose(this);
         }
 
         /**
          * Extract the upper triangle of this tensor.
          */
         triu(): tensor {
-            const iter = utils.imap(this._iorder_index_iterator(), i => {
-
-                if (i[i.length - 2] <= i[i.length - 1]) {
-                    return this.g(...i);
-                } else {
-                    return 0;
-                }
-            });
-            return constructors.from_iterable(iter, this.shape, this.dtype);
+            return transformations._triu(this);
         }
 
         /**
          * Extract the lower triangle of this tensor.
          */
         tril(): tensor {
-            const iter = utils.imap(this._iorder_index_iterator(), i => {
-
-                if (i[i.length - 2] >= i[i.length - 1]) {
-                    return this.g(...i);
-                } else {
-                    return 0;
-                }
-            });
-            return constructors.from_iterable(iter, this.shape, this.dtype);
+            return transformations._tril(this);
         }
 
     // #endregion METHOD CONSTRUCTORS
@@ -270,31 +200,29 @@ export class tensor {
     /**
      * Return true if all elements are true.
      */
-    all(axis?: number): number | tensor {
-        const f = data => {
-            for (let value of data) {
-                if (!value) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return this.apply_to_axis(f, axis);
+    all(axis?: number): tensor | number {
+        return aggregation._all(this, axis);
     }
 
     /**
      * Return true if any element is true.
      */
-    any(axis?: number): number | tensor {
-        const f = data => {
-            for (let value of data) {
-                if (value) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        return this.apply_to_axis(f, axis);
+    any(axis?: number): tensor | number {
+        return aggregation._any(this, axis);
+    }
+
+    /**
+     * Calculate argmin along the given axis.
+     */
+    argmin(axis?: number): tensor | number {
+        return aggregation._argmin(this, axis);
+    }
+
+    /**
+     * Calculate argmax along the given axis.
+     */
+    argmax(axis?: number): tensor | number {
+        return aggregation._argmax(this, axis);
     }
 
     /**
@@ -303,7 +231,7 @@ export class tensor {
      * @return {number}
      */
     max(axis?: number): tensor | number {
-        return this.apply_to_axis(e => Math.max(...e), axis);
+        return aggregation._max(this, axis);
     }
 
     /**
@@ -312,8 +240,19 @@ export class tensor {
      * @return {number}
      */
     min(axis?: number): tensor | number {
-        return this.apply_to_axis(e => Math.min(...e), axis);
+        return aggregation._min(this, axis);
     }
+
+    /**
+     * Sum the entries of the array along the specified axis.
+     * @param {number} axis
+     * @return {number}
+     */
+    sum(axis?: number): tensor | number {
+        return aggregation._sum(this, axis);
+    }
+
+    // #endregion AGGREGATION
 
     /**
      * Calculate the mean of the array.
@@ -361,30 +300,16 @@ export class tensor {
         }
     }
 
-    /**
-     * Sum the entries of the array along the specified axis.
-     * @param {number} axis
-     * @return {number}
-     */
-    sum(axis?: number): number | tensor {
-        return this.reduce((a, e) => a + e, 0, axis);
-    }
-
-    // #endregion AGGREGATION
-
     // #region FUNCTIONAL
 
         /**
          * Map the array.
          * @param f
-         * @param {number} axis
          * @return {tensor}
          */
-        map(f, axis?: number): tensor {
-            const new_data = this.data.map(f);
-            return constructors.array(new_data, this.shape, { disable_checks: true, dtype: this.dtype })
+        map(f): tensor {
+            return functional._map(this, f);
         }
-
 
         /**
          * Accumulating map over the entire array or along a particular axis.
@@ -397,50 +322,7 @@ export class tensor {
          * @return {tensor | number}
          */
         accum_map(f, axis?: number, start?: number, dtype?: string): tensor | number {
-            dtype = dtype === undefined ? this.dtype : dtype;
-            let new_array;
-            if (axis === undefined) {
-                // TODO: Views: Use size of view.
-
-                new_array = constructors.zeros(this.length, dtype);
-                let first_value;
-
-                if (start !== undefined) {
-                    new_array.data[0] = start;
-                }
-
-                let previous_index = 0;
-                let index_in_new = 0;
-                for (let index of this._iorder_data_iterator()) {
-                    new_array.data[index_in_new] = f(new_array.data[previous_index], this.data[index]);
-                    previous_index = index_in_new;
-                    index_in_new += 1;
-                }
-
-            } else {
-                const [lower, upper, steps] = this._slice_for_axis(axis);
-                new_array = constructors.zeros(this.shape, dtype);
-                const step_along_axis = this.stride[axis];
-
-                for (let index of this._iorder_data_iterator(lower, upper, steps)) {
-                    let first_value;
-
-                    if (start !== undefined) {
-                        first_value = f(start, this.data[index]);
-                    } else {
-                        first_value = this.data[index];
-                    }
-
-                    new_array.data[index] = first_value;
-                    let previous_index = index;
-                    for (let i = 1; i < this.shape[axis]; i++) {
-                        const new_index = index + i * step_along_axis;
-                        new_array.data[new_index] = f(new_array.data[previous_index], this.data[new_index]);
-                        previous_index = new_index;
-                    }
-                }
-            }
-            return new_array;
+            return functional._accum_map(this, f, axis, start, dtype);
         }
 
         /**
@@ -451,24 +333,7 @@ export class tensor {
          * @return {tensor | number}
          */
         apply_to_axis(f: (a: TypedArray | number[]) => any, axis?: number, dtype?: string): tensor | number {
-            dtype = dtype === undefined ? this.dtype : dtype;
-            if (axis === undefined) {
-                return f(this.data);
-            } else {
-                const new_shape = indexing.new_shape_from_axis(this.shape, axis);
-                let new_array = constructors.zeros(new_shape, dtype);
-                const step_along_axis = this.stride[axis];
-                for (let [old_index, new_index] of this.map_old_indices_to_new(axis)) {
-                    let axis_values = [];
-                    for (let i = 0; i < this.shape[axis]; i++) {
-                        axis_values.push(this.data[old_index + i * step_along_axis]);
-                    }
-
-                    new_array.data[new_index] = f(axis_values);
-                }
-
-                return new_array;
-            }
+            return functional._apply_to_axis(this, f, axis, dtype);
         }
 
         /**
@@ -477,42 +342,8 @@ export class tensor {
          * @param {number} axis
          * @param {string} dtype
          */
-        reduce(f: (accum: number, e: number, i?: number, array?) => number, initial?: number, axis?: number, dtype?: string): number | tensor {
-            dtype = dtype === undefined ? this.dtype : dtype;
-            if (axis === undefined) {
-                const iter = this._iorder_value_iterator()[Symbol.iterator]();
-                // Deal with initial value
-                let { done, value } = iter.next();
-                // If it's an empty array, return.
-                let accum;
-                if (done) {
-                    return this;
-                } else {
-                    accum = initial === undefined ? value : f(initial, value);
-                    while (true) {
-                        let { done, value } = iter.next();
-                        if (done) {
-                            break;
-                        } else {
-                            accum = f(accum, value);
-                        }
-                    }
-                    return accum;
-                }
-            } else {
-                const new_shape = indexing.new_shape_from_axis(this.shape, axis);
-                let new_array = constructors.zeros(new_shape, dtype);
-                const step_along_axis = this.stride[axis];
-                for (let [old_index, new_index] of this.map_old_indices_to_new(axis)) {
-                    let accum = initial === undefined ? this.data[old_index] : f(initial, this.data[old_index]);
-                    for (let i = 1; i < this.shape[axis]; i++) {
-                        accum = f(accum, this.data[old_index + i * step_along_axis]);
-                    }
-
-                    new_array.data[new_index] = accum;
-                }
-                return new_array;
-            }
+        reduce(f: (accum: number, e: number, i?: number, array?) => number, initial?: number, axis?: number, dtype?: string): tensor | number {
+            return functional._reduce(this, f, initial, axis, dtype);
         }
 
     //#endregion FUNCTIONAL
@@ -544,11 +375,7 @@ export class tensor {
 
     prod() { }
 
-    round() { }
-
     sort() { }
-
-    squeeze() { }
 
     trace() { }
 
@@ -556,7 +383,7 @@ export class tensor {
      * Drop any dimensions that equal 1.
      * @return {tensor}
      */
-    drop_unit_dimensions(): tensor {
+    squeeze(): tensor {
         // Drop extra dimensions.
         let flattened_shape = [];
         let flattened_stride = [];
@@ -576,14 +403,6 @@ export class tensor {
         const view = new tensor(this.data, new_shape, new_offset, new_stride, new_stride, size, this.dtype, true);
 
         return view;
-    }
-
-    /**
-     * Return a slice of an array. Copies the underlying data.
-     * @param indices
-     */
-    c_slice(...indices) {
-
     }
 
     /**
@@ -726,7 +545,7 @@ export class tensor {
          * @return {[Uint32Array, Uint32Array, Uint32Array]}  - [lower, upper, steps]
          * @private
          */
-        private _slice_for_axis(axis: number): [Uint32Array, Uint32Array, Uint32Array] {
+        _slice_for_axis(axis: number): [Uint32Array, Uint32Array, Uint32Array] {
             const lower = new Uint32Array(this.shape.length);
             let upper = this.shape.slice(0);
             const steps = utils.fixed_ones(this.shape.length);
@@ -740,7 +559,7 @@ export class tensor {
          * @return {Iterable<number[]>}
          * @private
          */
-        private map_old_indices_to_new(axis: number): Iterable<number[]> {
+        map_old_indices_to_new(axis: number): Iterable<number[]> {
             const new_shape = indexing.new_shape_from_axis(this.shape, axis);
             let new_array = constructors.zeros(new_shape, this.dtype);
 
@@ -888,7 +707,7 @@ export class tensor {
         /**
          * Subtract a broadcastable value from this.
          * @param {Broadcastable} b - Value to subtract.
-         * @return {number | tensor}
+         * @return {tensor | number}
          */
         sub(b: Broadcastable): tensor {
             return arithmetic._sub(this, b);
@@ -932,15 +751,12 @@ export class tensor {
 
         /**
          *  Return an array of booleans. Each entry is whether the corresponding entries in a and b are numerically close. The arrays will be broadcasted. 
-         * @param b - Second array to compare. 
+         * @param b - Second array to compare.
          * @param rel_tol - The maximum relative error.
          * @param abs_tol - The maximum absolute error.
          */
         is_close(b: tensor, rel_tol: number = 1e-5, abs_tol: number = 1e-8): tensor {
-            const compare = (x: number, y: number): number => {
-                return +(Math.abs(x - y) <= abs_tol + (rel_tol * Math.abs(y)));
-            }
-            return arithmetic._binary_broadcast(this, b, compare);
+            return arithmetic.is_close(this, b, rel_tol, abs_tol);
         }
 
     //#endregion Binary Methods
@@ -1017,7 +833,7 @@ export class tensor {
          * @return {tensor}   - An array with the same shape as a and b. Its entries are the max of the corresponding entries of a and b.
          */
         static take_max(a: tensor, b: tensor) {
-            return arithmetic._binary_broadcast(a, b, (x, y) => Math.max(x, y));
+            return arithmetic.take_max(a, b);
         }
 
         /**
@@ -1028,7 +844,7 @@ export class tensor {
          * @return {tensor}   - An array with the same shape as a and b. Its entries are the min of the corresponding entries of a and b.
          */
         static take_min(a: tensor, b: tensor) {
-            return arithmetic._binary_broadcast(a, b, (x, y) => Math.min(x, y));
+            return arithmetic.take_min(a, b);
         }
 
     //#endregion OPERATIONS
@@ -1084,202 +900,35 @@ export class tensor {
         return new tensor(new_data, a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, a.dtype, a.is_view, a.initial_offset);
     }
 
-    //#region CONSTRUCTORS
 
-        /**
-         * Convert the tensor to a nested JS array.
-         */
-        to_nested_array(): Array<any> {
-            let array = [];
-            for (let index of this._iorder_index_iterator()) {
-                let subarray = array;
-                for (let i of index.slice(0, -1)) {
-                    if (subarray[i] === undefined) {
-                        subarray[i] = [];
-                    }
-                    subarray = subarray[i];
+    /**
+     * Convert the tensor to a nested JS array.
+     */
+    to_nested_array(): Array<any> {
+        let array = [];
+        for (let index of this._iorder_index_iterator()) {
+            let subarray = array;
+            for (let i of index.slice(0, -1)) {
+                if (subarray[i] === undefined) {
+                    subarray[i] = [];
                 }
-                subarray[index[index.length - 1]] = this.g(...index);
+                subarray = subarray[i];
             }
-            return array;
+            subarray[index[index.length - 1]] = this.g(...index);
         }
+        return array;
+    }
 
-        /**
-         * Convert the tensor to JSON.
-         */
-        to_json(): object {
-            let json = {
-                data: this.to_nested_array(),
-                shape: Array.from(this.shape),
-                dtype: this.dtype
-            };
-            return json;
-        }
-
-        // /**
-        //  * Create a tensor from JSON.
-        //  * @param json - The JSON representation of the array.
-        //  */
-        // static from_json(json: any): tensor {
-        //     return tensor.from_nested_array(json.data, json.dtype);
-        // }
-
-        // /**
-        //  * Create a tensor from a nested array of values.
-        //  * @param {any[]} array - An array of arrays (nested to arbitrary depth). Each level must have the same dimension.
-        //  * The final level must contain valid data for a tensor.
-        //  * @param {string} dtype  - The type to use for the underlying array.
-        //  *
-        //  * @return {tensor}
-        //  */
-        // static from_nested_array(array: any[], dtype?: string): tensor {
-        //     if (array.length === 0) {
-        //         return constructors.array([]);
-        //     }
-
-        //     const dimensions = utils._nested_array_shape(array);
-        //     let slice_iter = indexing.iorder_index_iterator(dimensions);
-
-        //     const size = indexing.compute_size(dimensions);
-        //     const array_type = utils.dtype_map(dtype);
-        //     const data = new array_type(size);
-
-        //     let ndarray = constructors.array(data, dimensions, { dtype: dtype, disable_checks: true });
-
-        //     for (let indices of slice_iter) {
-        //         const real_index = ndarray._compute_real_index(indices);
-        //         ndarray.data[real_index] = utils._nested_array_value_from_index(array, indices);
-        //     }
-
-        //     return ndarray;
-        // }
-
-        // /**
-        //  * Create an n-dimensional array from an iterable.
-        //  * @param iterable
-        //  * @param shape
-        //  * @param {string} dtype
-        //  * @return {tensor}
-        //  */
-        // static from_iterable(iterable: Iterable<number>, shape: Shape, dtype?: string) {
-        //     const final_shape = indexing.compute_shape(shape);
-
-        //     const size = indexing.compute_size(final_shape);
-        //     const array_type = utils.dtype_map(dtype);
-        //     const index_iterator = indexing.iorder_index_iterator(final_shape);
-        //     const val_gen = iterable[Symbol.iterator]();
-        //     let data = new array_type(size);
-        //     const stride = indexing.stride_from_shape(final_shape);
-        //     const initial_offset = 0;
-        //     let i = 0;
-        //     for (let index of index_iterator) {
-        //         const real_index = indexing.index_in_data(index, stride, initial_offset);
-        //         let val = val_gen.next();
-        //         data[real_index] = val.value;
-        //     }
-
-        //     if (data.length !== size) {
-        //         throw new errors.MismatchedShapeSize(`Iterable passed has size ${data.length}. Size expected from shape was: ${size}`);
-        //     }
-
-        //     return constructors.array(data, final_shape, { disable_checks: true, dtype: dtype });
-        // }
-
-        // /**
-        //  * Produces an array of the desired shape filled with a single value.
-        //  * @param {number} value                - The value to fill in.
-        //  * @param shape - A numerical array or a number. If this is a number a one-dimensional array of that length is produced.
-        //  * @param {string} dtype                - The data type to use for the array. float64 by default.
-        //  * @return {tensor}
-        //  */
-        // static filled(value: number, shape, dtype?: string): tensor {
-        //     const final_shape = indexing.compute_shape(shape);
-
-        //     const size = indexing.compute_size(final_shape);
-        //     const array_type = utils.dtype_map(dtype);
-        //     const data = new array_type(size).fill(value);
-
-        //     return constructors.array(data, final_shape, { disable_checks: true, dtype: dtype });
-        // }
-
-        // /**
-        //  * Return an array of the specified size filled with zeroes.
-        //  * Equivalent to `tensor.filled`, but slightly faster.
-        //  * @param {number} shape
-        //  * @param {string} dtype
-        //  * @return {tensor}
-        //  */
-        // static zeros(shape, dtype?: string) {
-        //     const final_shape = indexing.compute_shape(shape);
-        //     const size = indexing.compute_size(final_shape);
-        //     const array_type = utils.dtype_map(dtype);
-        //     const data = new array_type(size);
-
-        //     return constructors.array(data, final_shape, { disable_checks: true, dtype: dtype });
-        // }
-
-        // /**
-        //  * Create an identity matrix of a given size.
-        //  * @param m - The size of the identity matrix.
-        //  * @param dtype - The dtype for the identity matrix.
-        //  */
-        // static eye(m: number, dtype?: string): tensor {
-        //     let array = constructors.zeros([m, m], dtype);
-        //     for (let i = 0; i < m; i++) {
-        //         array.s(1, i, i);
-        //     }
-        //     return array;
-        // }
-
-        // /**
-        //  * Create a tensor containing the specified data
-        //  * @param data
-        //  * @param shape
-        //  * @param options
-        //  * @return {tensor}
-        //  */
-        // static array(data, shape?, options?: ArrayOptions): tensor {
-        //     let final_shape;
-        //     let size;
-        //     let dtype;
-
-        //     if (shape === undefined) {
-        //         shape = new Uint32Array([data.length]);
-        //     }
-
-        //     if (options && options.dtype) {
-        //         dtype = options.dtype
-        //     }
-
-        //     if (options && options.disable_checks === true) {
-        //         final_shape = shape;
-        //         size = indexing.compute_size(shape);
-        //     } else {
-        //         if (!utils.is_numeric_array(data)) {
-        //             throw new errors.BadData();
-        //         }
-
-        //         if (shape === undefined || shape === null) {
-        //             final_shape = new Uint32Array([data.length]);
-        //         } else {
-        //             final_shape = indexing.compute_shape(shape);
-        //         }
-
-        //         // Compute length
-        //         size = indexing.compute_size(final_shape);
-
-        //         if (size !== data.length) {
-        //             throw new errors.MismatchedShapeSize()
-        //         }
-        //     }
-
-        //     const stride = indexing.stride_from_shape(final_shape);
-        //     const offset = new Uint32Array(final_shape.length);
-        //     const dstride = stride.slice();
-
-        //     return new tensor(data, final_shape, offset, stride, dstride, size, dtype);
-        // }
-
-    //#endregion CONSTRUCTORS
+    /**
+     * Convert the tensor to JSON.
+     */
+    to_json(): object {
+        let json = {
+            data: this.to_nested_array(),
+            shape: Array.from(this.shape),
+            dtype: this.dtype
+        };
+        return json;
+    }
 
 }

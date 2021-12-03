@@ -22,18 +22,28 @@ function random_shape(max_size, upper) {
 }
 
 function array_arbitrary(dim_size_min, dim_size_max, min_dims, max_dims) {
-  return fc.array(fc.integer(dim_size_min, dim_size_max), min_dims, max_dims).chain(shape => {
-    const size = shape.reduce((a, b) => a * b, 1);
-    return fc.tuple(fc.array(fc.float(), size, size), fc.constant(shape))
-  });
+    return fc.array(fc.integer(dim_size_min, dim_size_max), min_dims, max_dims).chain(shape => {
+        const size = shape.reduce((a, b) => a * b, 1);
+        return fc.tuple(fc.array(fc.float(), size, size), fc.constant(shape))
+    });
 }
 
-function from_shape(shape) {
-  const size = indexing.compute_size(shape);
-  return fc.tuple(fc.array(fc.float(), size, size), fc.constant(shape));
+/**
+ * Generate a random array of the specified size
+ */
+function from_shape(shape, min, max) {
+
+    const size = indexing.compute_size(shape);
+    if (min === undefined && max === undefined) {
+        return fc.tuple(fc.array(fc.float(), size, size), fc.constant(shape));
+    } else {
+        // return fc.tuple(fc.array(fc.float(min, max), size, size), fc.constant(shape));
+        return fc.tuple(fc.float64Array({minLength: size, maxLength: size, min: min, max: max}), fc.constant(shape));
+    }
 }
 
 const matrix = array_arbitrary(1, 100, 2, 2);
+
 const small_matrix = array_arbitrary(1, 10, 2, 2);
 
 const thin_matrix = fc.integer(2, 10).chain(n => fc.tuple(fc.constant(n), fc.integer(1, n))).chain(shape => from_shape(shape));
@@ -66,7 +76,35 @@ const broadcastable = small_matrix.chain(
       }
     });
     return fc.tuple(fc.constant([data, shape]), from_shape(shape));
-  });
+});
+
+
+function broadcastable_non_zero(min, max) {
+
+    // Choose the number of dimensions for the second array
+    function choose_dims([data, shape]) {
+        return fc.tuple(fc.constant([data, shape]), fc.integer(1, shape.length))
+    }
+
+    function build_second_array([[data, shape], dims]) {
+        // fc.array(fc.float(), dims, dims)
+        return fc.tuple(fc.constant([data, shape]), fc.float64Array({minLength: dims, maxLength: dims}))
+    }
+
+    function build_second_shape([[data, shape], used]){
+        let shape_2 = new Uint32Array(used.length);
+        used.forEach((e, i) => {
+            if (e < BROADCAST_ONE_DIM_PROB) {
+                shape_2[i] = 1;
+            } else {
+                shape_2[i] = shape[i];
+            }
+        });
+        return fc.tuple(fc.constant([data, shape]), from_shape(shape, min, max));
+    }
+
+    return small_matrix.chain(choose_dims).chain(build_second_array).chain(build_second_shape);
+}
 
 /**
  * Check a property for two broadcastable arrays.
@@ -80,11 +118,30 @@ function check_arrays(f) {
   };
 
   const params = {
-    numRuns: 15
+    numRuns: 10
   };
 
   fc.assert(fc.property(broadcastable, check), params);
 }
+
+/**
+ * Check a property for two broadcastable arrays.
+ * @param {Function} f - The property.
+ */
+ function check_with_non_zero(f) {
+    const check = ([[data_1, shape_1], [data_2, shape_2]]) => {
+      const a = numts.from_iterable(data_1, shape_1);
+      const b = numts.from_iterable(data_2, shape_2);
+      return f(a, b);
+    };
+  
+    const params = {
+      numRuns: 10
+    };
+  
+    fc.assert(fc.property(broadcastable_non_zero(1e-5, 1e5), check), params);
+}
+
 
 function check_random_array(f) {
   const check = ([data, shape]) => {
@@ -125,4 +182,4 @@ function check_matrix(f, filter = '') {
   }
 }
 
-module.exports = {check_arrays, random_shape, check_random_array, check_matrix};
+module.exports = {check_arrays, check_with_non_zero, random_shape, check_random_array, check_matrix};
