@@ -1,6 +1,6 @@
-import {utils} from "./utils";
-import {Broadcastable, Shape, USlice, ISlice} from "./types";
-import {errors, tensor} from "./tensor";
+import {utils} from "../utils";
+import {Broadcastable, Shape, USlice, ISlice} from "../types";
+import {errors, tensor} from "../tensor";
 
 
 export namespace indexing {

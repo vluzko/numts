@@ -1,6 +1,6 @@
 import {tensor, Broadcastable} from '../tensor';
 import * as constructors from './constructors';
-import {indexing} from '../indexing';
+import {indexing} from './indexing';
 import {utils} from '../utils';
 
 /**

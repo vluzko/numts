@@ -113,7 +113,7 @@ describe('Shapes.', function () {
 
 describe('to_nested_array.', function() {
     it('Simple.', function() {
-        let x = constructors.arange(10).reshape(2, 5);
+        let x = numts.arange(10).reshape(2, 5);
         let y = x.to_nested_array();
         expect(y).toEqual([
             [0, 1, 2, 3, 4],

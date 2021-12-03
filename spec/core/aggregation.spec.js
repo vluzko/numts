@@ -1,43 +1,43 @@
 const aggregation = require('../../numts/tensor_core/aggregation');
 
 describe('argmin.', function() {
-    test('Simple.', function() {
+    test('No axis.', function() {
 
     })
 })
 
 describe('argmax.', function() {
-    test('Simple.', function() {
+    test('No axis.', function() {
 
     })
 })
 
 describe('all.', function() {
-    test('Simple.', function() {
+    test('No axis.', function() {
 
     })
 })
 
 describe('any.', function() {
-    test('Simple.', function() {
+    test('No axis.', function() {
 
     })
 })
 
 describe('max.', function() {
-    test('Simple.', function() {
+    test('No axis.', function() {
 
     })
 })
 
 describe('min.', function() {
-    test('Simple.', function() {
+    test('No axis.', function() {
 
     })
 })
 
 describe('sum.', function() {
-    test('Simple.', function() {
+    test('No axis.', function() {
 
     })
 })
