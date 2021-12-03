@@ -1,5 +1,5 @@
 import {tensor, Shape, errors, ArrayOptions} from '../tensor';
-import {indexing} from '../indexing';
+import {indexing} from './indexing';
 import {utils} from '../utils';
 
 

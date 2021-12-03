@@ -1,5 +1,5 @@
 import { utils } from './utils';
-import { indexing } from './indexing';
+import { indexing } from './tensor_core/indexing';
 import * as arithmetic from './tensor_core/binary_ops';
 import * as aggregation from './tensor_core/aggregation';
 import * as constructors from './tensor_core/constructors';

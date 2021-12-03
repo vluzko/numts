@@ -1,8 +1,8 @@
-const indexing = require('../numts/indexing').indexing;
-const numts = require('../numts/numts');
-const random = require('../numts/random');
-const tensor = require('../numts/tensor').tensor;
-const utils = require('../numts/utils').utils;
+const indexing = require('../../numts/tensor_core/indexing').indexing;
+const numts = require('../../numts/numts');
+const random = require('../../numts/random');
+const tensor = require('../../numts/tensor').tensor;
+const utils = require('../../numts/utils').utils;
 
 
 describe('Basic calculations.', function () {

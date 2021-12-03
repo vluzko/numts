@@ -1,6 +1,6 @@
 import {tensor} from "./tensor";
 import {from_iterable} from './tensor_core/constructors';
-import {indexing} from "./indexing";
+import {indexing} from "./tensor_core/indexing";
 import {Shape} from "./types";
 
 /**

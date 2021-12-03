@@ -1,6 +1,6 @@
 import {tensor, TypedArray} from '../tensor';
 import * as constructors from './constructors';
-import {indexing} from '../indexing';
+import {indexing} from './indexing';
 
 /**
  * Accumulating map over the entire array or along a particular axis.
