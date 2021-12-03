@@ -6,7 +6,6 @@ import * as constructors from './tensor_core/constructors';
 import * as functional from './tensor_core/functional';
 import * as transformations from './tensor_core/transformations';
 import new_shape_from_axis = indexing.new_shape_from_axis;
-import { transform } from 'typescript';
 
 export type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
 type Numeric = TypedArray | number[];
