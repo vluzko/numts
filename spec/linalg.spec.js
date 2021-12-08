@@ -160,8 +160,13 @@ describe('Decompositions.', () =>  {
                     let [u, s, v] = linalg.householder_bidiagonal(a);
                     const b = tensor.matmul_2d(u, tensor.matmul_2d(s, v.transpose()));
                     expect(a.is_close(b).all()).toBe(true);
-                    // TODO: Testing: Check that b is bidiagonal.
-                    // TODO: Testing: Check that U and V are proper Householder transforms
+
+                    // Check that s is bidiagonal.
+                    expect(linalg.check_bidiagonal(s)).toBe(true);
+
+                    // Check orthogonality of U and V.
+                    expect(linalg.check_orthogonal(u)).toBe(true);
+                    expect(linalg.check_orthogonal(v)).toBe(true);
                 })
             })
 
@@ -199,14 +204,14 @@ describe('Decompositions.', () =>  {
     });
 
     describe('Singular value decomposition.', function() {
-        it('Basic test.', () => {
+        fit('Basic test.', () => {
             const a = numts.from_nested_array([
                 [1, 2, 3, 4],
                 [3.5, 2.7, -1, 2],
                 [0.2, 6.7, 10, 15],
                 [-3.6, 2.6, 1, -1]
             ]);
-            console.log(a.to_nested_array())
+            // console.log(a.to_nested_array())
             const [u, s, v] = linalg.svd(a);
             console.log(s.to_nested_array());
         });
