@@ -134,7 +134,7 @@ export function inv(a: tensor): tensor {
 
 //#region Decompositions
 /**
- * Calculate the singular valud decomposition of a matrix.
+ * Calculate the singular value decomposition of a matrix.
  * @param a - A matrix.
  */
 export function svd(a: tensor): [tensor, tensor, tensor] {
@@ -407,7 +407,7 @@ export function full_h_row_matrix(w: tensor, m: number, beta: number): tensor {
  * Reduce an [m, n] matrix to bidiagonal form using Householder transformations.
  * This is Golub-Kahan bidiagonalization.
  * TODO: Optimization: Use the zeroed entries of the matrix to store the Householder transforms
- * TODO: Optimization: Run Lawson-Hanson-Chan insteadif m > 5/3n
+ * TODO: Optimization: Run Lawson-Hanson-Chan instead if m > 5/3n
  * (as suggested by GVL)
  */
 export function householder_bidiagonal(original: tensor): [tensor, tensor, tensor] {

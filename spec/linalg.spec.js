@@ -149,7 +149,7 @@ describe('Decompositions.', () =>  {
 
             describe('Householder bidiagonal', () => {
 
-                test('Basic test.', () => {
+                fit('Basic test.', () => {
                     const a = numts.from_nested_array([
                         [1, 6,  11, 16],
                         [2, 7, 12, 17],
@@ -160,8 +160,27 @@ describe('Decompositions.', () =>  {
                     let [u, s, v] = linalg.householder_bidiagonal(a);
                     const b = tensor.matmul_2d(u, tensor.matmul_2d(s, v.transpose()));
                     expect(a.is_close(b).all()).toBe(true);
-                    // TODO: Testing: Check that b is bidiagonal.
-                    // TODO: Testing: Check that U and V are proper Householder transforms
+
+                    // Check that s is bidiagonal.
+                    for (let i = 2; i < 4; i++) {
+                        for (let j = 0; j < i - 1; j++) {
+                            const val = s.g(i, j);
+                            expect(Math.abs(val)).toBeLessThan(1e-12);
+                        }
+                    }
+
+                    for (let i = 0; i < 2; i++) {
+                        for (let j = i + 2; j < 4; j++) {
+                            const val = s.g(i, j);
+                            expect(Math.abs(val)).toBeLessThan(1e-12);
+                        }
+                    }
+
+                    // Check orthogonality of U and V.
+                    const orth1 = tensor.matmul_2d(u, u.transpose());
+                    const orth2 = tensor.matmul_2d(v, v.transpose());
+                    expect(orth1.is_close(numts.eye(5)).all()).toBe(true);
+                    expect(orth2.is_close(numts.eye(4)).all()).toBe(true);
                 })
             })
 
