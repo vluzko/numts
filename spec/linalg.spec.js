@@ -149,7 +149,7 @@ describe('Decompositions.', () =>  {
 
             describe('Householder bidiagonal', () => {
 
-                fit('Basic test.', () => {
+                test('Basic test.', () => {
                     const a = numts.from_nested_array([
                         [1, 6,  11, 16],
                         [2, 7, 12, 17],

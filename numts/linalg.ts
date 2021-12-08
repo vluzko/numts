@@ -135,6 +135,7 @@ export function inv(a: tensor): tensor {
 //#region Decompositions
 /**
  * Calculate the singular value decomposition of a matrix.
+ * Based on Golub & van Loan, 4th Edition, Algorithm 8.6.1.
  * @param a - A matrix.
  */
 export function svd(a: tensor): [tensor, tensor, tensor] {
@@ -148,35 +149,64 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
     let [u, s, v] = householder_bidiagonal(a);
 
     const epsilon = 0.00001
-    // let done = false;
-    // while (!done) {
-    //     throw Error('Not implemented: core SVD loop');
-    //     // Zero out small superdiagonal entries
+    let done = false;
+    while (!done) {
+        // Find non-zero upper diagonal values
+        for (let i = 0; i < n - 1; i++) {
+            const val = s.g(i, i+1);
 
-    //     // Sweep
-    // }
-    // Use Givens rotations to diagonalize s.
-    let givens: tensor;
-    for (let i = 0; i < m-1; i++) {
-        // if (i == 2) debugger;
-        // Skip this row if it's already zeroed
-        if (s.g(i, i+1) == 0) {
-            continue
-        } else {
-            // Eliminate right of diagonal
-            [givens, s] = givens_rotation_row(s, i, i+1);
-            v = tensor.matmul_2d(givens, v);
+            // Zero out values that are small enough.
+            const upper_bound = epsilon * (Math.abs(s.g(i, i)) + Math.abs(s.g(i+1, i+1)));
+            if (val < upper_bound) {
+                s.s(0, i, i+1);
+            }
 
-            // Eliminate new entry under diagonal
-            [givens, s] = givens_rotation_up(s, i, i+1);
-
-            u = tensor.matmul_2d(u, givens);
+            const [p, q] = determine_p_q(s);
+            // This element is too large and we need to zero it.
+            if (Math.abs(val) > epsilon) {
+                console.log(val);
+            }
         }
+
+        done = true;
+        // throw Error('Not implemented: core SVD loop');
+        // Zero out small superdiagonal entries
+
+        // Sweep
     }
+    // Use Givens rotations to diagonalize s.
+    // let givens: tensor;
+    // for (let i = 0; i < m-1; i++) {
+    //     // if (i == 2) debugger;
+    //     // Skip this row if it's already zeroed
+    //     if (s.g(i, i+1) == 0) {
+    //         continue
+    //     } else {
+    //         // Eliminate right of diagonal
+    //         [givens, s] = givens_rotation_row(s, i, i+1);
+    //         v = tensor.matmul_2d(givens, v);
+
+    //         // Eliminate new entry under diagonal
+    //         [givens, s] = givens_rotation_up(s, i, i+1);
+
+    //         u = tensor.matmul_2d(u, givens);
+    //     }
+    // }
 
     // U_1 U_k and V_k V_1 are U and V respectively
     return [u, s, v]
 }
+
+export function determine_p_q(s: tensor): [number, number] {
+    const [m, n] = s.shape;
+
+    let first_off_diagonal: number;
+    let second_off_diagonal: number;
+    // Find largest q so that the bottom q x q block is diagonal
+    // Find smallest p so that the middle n - p - q x n - p - q block has a nonzero superdiagonal
+    throw new Error('Not implemented');
+}
+
 
 /**
  * Sweep the superdiagonal of a matrix with Givens rotations.
@@ -638,9 +668,49 @@ function compressed_givens_mult(G: Float64Array, A: tensor): tensor {
 //#endregion Decompositions
 
 
+/**
+ * Check that a matrix has no entries in the upper triangle
+ */
+export function check_lower_triangular(a: tensor): boolean {
+    const [m, n] = a.shape;
+    // Check the upper triangle.
+    for (let i = 0; i < m-1; i++) {
+        for (let j = i + 1; j < n; j++) {
+            const val = a.g(i, j);
+            if (Math.abs(val) > 1e-12) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+/**
+ * Check if a matrix is diagonal
+ */
+export function check_diagonal(a: tensor): boolean {
+    const [_, n] = a.shape;
+    const is_bidiagonal = check_bidiagonal(a);
+    if (!is_bidiagonal) {
+        return false;
+    } else {
+        for (let i = 0; i < n - 1; i++) {
+            const val = a.g(i, i+1);
+            if (Math.abs(val) > 1e-12) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+/**
+ * Check if a matrix is bidiagonal.
+ */
 export function check_bidiagonal(a: tensor): boolean {
     const [m, n] = a.shape;
-    // Check that s is bidiagonal.
+    // Check the lower triangle.
     for (let i = 1; i < m; i++) {
         for (let j = 0; j < Math.min(i - 1, n); j++) {
             const val = a.g(i, j);
@@ -650,6 +720,7 @@ export function check_bidiagonal(a: tensor): boolean {
         }
     }
 
+    // Check the upper triangle.
     for (let i = 0; i < m-1; i++) {
         for (let j = i + 2; j < n; j++) {
             const val = a.g(i, j);
@@ -661,6 +732,9 @@ export function check_bidiagonal(a: tensor): boolean {
     return true;
 }
 
+/**
+ * Check if a matrix is orthogonal.
+ */
 export function check_orthogonal(a: tensor): boolean {
     const [m, n] = a.shape;
     const orth = tensor.matmul_2d(a, a.transpose());
