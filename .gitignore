@@ -6,3 +6,4 @@ numts/**/*.js
 report.*
 .vscode/
 coverage/
+spec/prop_spec/call_python.js
