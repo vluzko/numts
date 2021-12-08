@@ -162,25 +162,11 @@ describe('Decompositions.', () =>  {
                     expect(a.is_close(b).all()).toBe(true);
 
                     // Check that s is bidiagonal.
-                    for (let i = 2; i < 4; i++) {
-                        for (let j = 0; j < i - 1; j++) {
-                            const val = s.g(i, j);
-                            expect(Math.abs(val)).toBeLessThan(1e-12);
-                        }
-                    }
-
-                    for (let i = 0; i < 2; i++) {
-                        for (let j = i + 2; j < 4; j++) {
-                            const val = s.g(i, j);
-                            expect(Math.abs(val)).toBeLessThan(1e-12);
-                        }
-                    }
+                    expect(linalg.check_bidiagonal(s)).toBe(true);
 
                     // Check orthogonality of U and V.
-                    const orth1 = tensor.matmul_2d(u, u.transpose());
-                    const orth2 = tensor.matmul_2d(v, v.transpose());
-                    expect(orth1.is_close(numts.eye(5)).all()).toBe(true);
-                    expect(orth2.is_close(numts.eye(4)).all()).toBe(true);
+                    expect(linalg.check_orthogonal(u)).toBe(true);
+                    expect(linalg.check_orthogonal(v)).toBe(true);
                 })
             })
 
@@ -218,14 +204,14 @@ describe('Decompositions.', () =>  {
     });
 
     describe('Singular value decomposition.', function() {
-        it('Basic test.', () => {
+        fit('Basic test.', () => {
             const a = numts.from_nested_array([
                 [1, 2, 3, 4],
                 [3.5, 2.7, -1, 2],
                 [0.2, 6.7, 10, 15],
                 [-3.6, 2.6, 1, -1]
             ]);
-            console.log(a.to_nested_array())
+            // console.log(a.to_nested_array())
             const [u, s, v] = linalg.svd(a);
             console.log(s.to_nested_array());
         });

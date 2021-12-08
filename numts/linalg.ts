@@ -148,31 +148,31 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
     let [u, s, v] = householder_bidiagonal(a);
 
     const epsilon = 0.00001
-    let done = false;
-    while (!done) {
-        throw Error('Not implemented: core SVD loop');
-        // Zero out small superdiagonal entries
+    // let done = false;
+    // while (!done) {
+    //     throw Error('Not implemented: core SVD loop');
+    //     // Zero out small superdiagonal entries
 
-        // Sweep
-    }
-    // Use Givens rotations to diagonalize s.
-    // let givens: tensor;
-    // for (let i = 0; i < m-1; i++) {
-    //     // if (i == 2) debugger;
-    //     // Skip this row if it's already zeroed
-    //     if (s.g(i, i+1) == 0) {
-    //         continue
-    //     } else {
-    //         // Eliminate right of diagonal
-    //         [givens, s] = givens_rotation_row(s, i, i+1);
-    //         v = tensor.matmul_2d(givens, v);
-
-    //         // Eliminate new entry under diagonal
-    //         [givens, s] = givens_rotation_up(s, i, i+1);
-
-    //         u = tensor.matmul_2d(u, givens);
-    //     }
+    //     // Sweep
     // }
+    // Use Givens rotations to diagonalize s.
+    let givens: tensor;
+    for (let i = 0; i < m-1; i++) {
+        // if (i == 2) debugger;
+        // Skip this row if it's already zeroed
+        if (s.g(i, i+1) == 0) {
+            continue
+        } else {
+            // Eliminate right of diagonal
+            [givens, s] = givens_rotation_row(s, i, i+1);
+            v = tensor.matmul_2d(givens, v);
+
+            // Eliminate new entry under diagonal
+            [givens, s] = givens_rotation_up(s, i, i+1);
+
+            u = tensor.matmul_2d(u, givens);
+        }
+    }
 
     // U_1 U_k and V_k V_1 are U and V respectively
     return [u, s, v]
@@ -636,3 +636,35 @@ function compressed_givens_mult(G: Float64Array, A: tensor): tensor {
 //#endregion Givens QR
 
 //#endregion Decompositions
+
+
+export function check_bidiagonal(a: tensor): boolean {
+    const [m, n] = a.shape;
+    // Check that s is bidiagonal.
+    for (let i = 1; i < m; i++) {
+        for (let j = 0; j < Math.min(i - 1, n); j++) {
+            const val = a.g(i, j);
+            if (Math.abs(val) > 1e-12) {
+                return false;
+            }
+        }
+    }
+
+    for (let i = 0; i < m-1; i++) {
+        for (let j = i + 2; j < n; j++) {
+            const val = a.g(i, j);
+            if (Math.abs(val) > 1e-12) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+export function check_orthogonal(a: tensor): boolean {
+    const [m, n] = a.shape;
+    const orth = tensor.matmul_2d(a, a.transpose());
+    const identity = eye(m);
+    // @ts-ignore
+    return orth.is_close(identity).all();
+}
