@@ -67,6 +67,42 @@ export function normal(mean: number = 0.0, stdev: number = 1.0, shape: Shape = [
   return from_iterable(iter, shape, "float64");
 }
 
+export function binomial() {
+
+}
+
+export function beta () {
+
+}
+
+export function exponential() {
+
+}
+
+export function gamma() {
+    
+}
+
+export function laplace() {
+
+}
+
+export function multinomial() {
+
+}
+
+export function pareto() {
+
+}
+
+export function poisson() {
+
+}
+
+export function power() {
+
+}
+
 
 /**
  * Generate a normally distributed random value, using the Ziggurat algorithm.
