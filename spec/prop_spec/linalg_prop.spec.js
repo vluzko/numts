@@ -46,7 +46,7 @@ describe('Decompositions.', () => {
                 if (!qr_prod.is_close(a).all()) throw new Error('qr not original.')
 
                 // Check that R is upper triangular
-                const [mr, nr] = r.shape;
+                const [mr, _] = r.shape;
                 for (let i = 0; i < mr - 1; i++) {
                     const zero_vec = numts.zeros([mr - i - 1], 1);
                     const slice = r.slice([i+1, null], i);
@@ -64,29 +64,6 @@ describe('Decompositions.', () => {
                     expect(v.shape[0]).toBe(m-1);
                     expect(v.shape[1]).toBe(1);
                 }
-            })
-        })
-
-        describe('Householder transforms.', () => {
-            test('Thin matrices.', function() {
-                function f(a) {
-                    const [m, ] = a.shape;
-                    const [q, _] = linalg.householder_col_vector(a, m-2, 0);
-
-                    const col_slice = q.slice([m-2, null], 0);
-                    const expected = numts.zeros([m-2, 1]);
-                    if (!(col_slice.is_close(expected).all())) throw new Error('not zeroed')
-                    // // Check that q is orthogonal
-                    // const t = q.transpose();
-                    // const inv_prod = tensor.matmul_2d(q, t);
-                    // const expected = numts.eye(m);
-                    // if (!inv_prod.is_close(expected).all()) throw new Error('Inverse prod not identity')
-
-                    // // Check that the product is correct
-                    // const qr_prod = tensor.matmul_2d(q, r);
-                    // if (!qr_prod.is_close(a).all()) throw new Error('qr not original.')
-                }
-                helpers.check_matrix(f, 'thin');
             })
         })
     })

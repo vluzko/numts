@@ -352,6 +352,7 @@ function householder_qr(A: tensor) {
  * @param a - The matrix to transform. Transformation is done in place.
  * @param i - The row index of the pivot.
  * @param j - The column index of the pivot.
+ * @returns - The vector, and the pivot value.
  */
 export function householder_col_vector(a: tensor, i: number, j: number): [tensor, number] {
     let vec = tensor.copy(a.slice([i, null], [j, j + 1]));
@@ -364,6 +365,7 @@ export function householder_col_vector(a: tensor, i: number, j: number): [tensor
  * @param a - The matrix to transform. Transformation is done in place.
  * @param i - The row index of the pivot.
  * @param j - The column index of the pivot.
+ * @returns - The vector, and the pivot value.
  */
 export function householder_row_vector(a: tensor, i: number, j: number): [tensor, number] {
     let vec = tensor.copy(a.slice([i, i + 1], [j, null]));
@@ -378,6 +380,9 @@ export function householder_row_vector(a: tensor, i: number, j: number): [tensor
  * Algorithm 5.1.1 in Golub & van Loan, 4th Edition.
  * TODO: Optimization: Pass sigma in directly so we don't need the first component of the vector
  * (which always ends up equal to 1)
+ * @param vec -
+ * @param pivot -
+ * @returns -
  */
 function compute_householder(vec: tensor, pivot: number): [tensor, number] {
     const sigma = <number>vec.reduce((x, y) => x + Math.pow(y, 2), 0) - Math.pow(pivot, 2);

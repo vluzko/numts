@@ -330,17 +330,17 @@ describe('Slicing.', function () {
     });
   });
 
-  describe('drop_unit_dimensions.' ,function () {
+  describe('squeeze.' ,function () {
     it('Simple test.', function () {
       const array = numts.arange(5).reshape([1, 5]);
-      const dropped = array.drop_unit_dimensions();
+      const dropped = array.squeeze();
       const expected = numts.arange(5);
       expect(expected.equals(dropped)).toBe(true);
     });
 
     it('Multiple dimensions.', function () {
       const array = numts.arange(25).reshape([1, 5, 1, 1, 5, 1]);
-      const dropped = array.drop_unit_dimensions();
+      const dropped = array.squeeze();
       const expected = numts.arange(25).reshape([5, 5]);
       expect(expected.equals(dropped)).toBe(true);
     })
