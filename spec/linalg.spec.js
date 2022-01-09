@@ -75,23 +75,22 @@ describe('Decompositions.', () =>  {
         });
 
         describe('Householder transformations', () => {
-                it('Basic test.', () => {
-                    const a = numts.from_nested_array([
-                        [1, 6,  11],
-                        [2, 7, 12],
-                        [3, 8, 13],
-                        [4, 9, 14],
-                        [5, 10, 15]
-                    ]);
-                    const [q, _] = linalg.householder_col_vector(a, 3, 0);
-                    expect(q.shape.length).toBe(2);
-                    const [i, j] = q.shape;
-                    expect(i).toBe(5 - 3);
-                    expect(j).toBe(1);
-                });
+            it('Basic test.', () => {
+                const a = numts.from_nested_array([
+                    [1, 6,  11],
+                    [2, 7, 12],
+                    [3, 8, 13],
+                    [4, 9, 14],
+                    [5, 10, 15]
+                ]);
+                const [q, _] = linalg.householder_col_vector(a, 3, 0);
+                expect(q.shape.length).toBe(2);
+                const [i, j] = q.shape;
+                expect(i).toBe(5 - 3);
+                expect(j).toBe(1);
+            });
 
-
-            })
+        })
 
             describe('Householder vector and matrix.', () => {
                 it('Column test.', () => {
@@ -103,7 +102,6 @@ describe('Decompositions.', () =>  {
                         [5, 10, 15]
                     ]);
                     const [v, b] = linalg.householder_col_vector(a, 0, 0);
-                    console.log(v);
                     expect(v.shape[0]).toBe(5);
                     expect(v.shape[1]).toBe(1)
                     const q = linalg.full_h_col_matrix(v, 5, b);
@@ -204,7 +202,7 @@ describe('Decompositions.', () =>  {
     });
 
     describe('Singular value decomposition.', function() {
-        fit('Basic test.', () => {
+        test('Basic test.', () => {
             const a = numts.from_nested_array([
                 [1, 2, 3, 4],
                 [3.5, 2.7, -1, 2],
@@ -243,12 +241,13 @@ describe('Helper functions.', () => {
         describe('Givens values.', () => {
             test('Basic tests.', () => {
                 let [c, s] = linalg.givens_values(2, 2);
-                expect(Math.abs(c - 0.707106)).toBeLessThan(0.0001)
-                expect(Math.abs(s - -0.707106)).toBeLessThan(0.0001)
+
+                expect(Math.abs(c - 0.707106)).toBeLessThan(0.0001);
+                expect(Math.abs(s - -0.707106)).toBeLessThan(0.0001);
 
                 [c, s] = linalg.givens_values(2, 2);
-                expect(Math.abs(c - 0.707106)).toBeLessThan(0.0001)
-                expect(Math.abs(s - -0.707106)).toBeLessThan(0.0001)
+                expect(Math.abs(c - 0.707106)).toBeLessThan(0.0001);
+                expect(Math.abs(s - -0.707106)).toBeLessThan(0.0001);
             })
         })
     });
