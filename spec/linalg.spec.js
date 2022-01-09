@@ -224,7 +224,7 @@ describe('Helper functions.', () => {
                 [2, 1, 0],
                 [0, 0, 1]
             ]);
-            const [g, r] = linalg.givens_rotation_up(a, 0, 1);
+            const [_, r] = linalg.givens_rotation_up(a, 0, 1);
             expect(r.g(1, 0)).toBe(0);
         })
 
