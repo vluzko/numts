@@ -369,7 +369,7 @@ export class tensor {
      * Compute an element-wise power.
      * @param {number} exp
      */
-    power(exp: number) {
+    power(exp: number): tensor {
         return this.map(e => Math.pow(e, exp));
     }
 
@@ -527,7 +527,7 @@ export class tensor {
         }
     }
 
-    // #region Indexing
+    // #region INDEXING
 
         /**
          * Computes the index of a value in the underlying data array based on a passed index.
@@ -646,7 +646,7 @@ export class tensor {
 
         /**
          * Create an iterator over the values of the array, in data order.
-         * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+         * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this contains the upper bounds, and the lower bounds are the offset of the tensor.
          * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
          * @param steps - The size of the steps to take along each axis.
          * @private
@@ -692,9 +692,9 @@ export class tensor {
             return [lower_bounds, upper_bounds, steps];
         }
 
-    //#endregion Indexing
+    //#endregion INDEXING
 
-    // #region Binary Methods
+    // #region BINARY METHODS
 
         /**
          * Add `b` to `this`.
@@ -750,7 +750,7 @@ export class tensor {
         }
 
         /**
-         *  Return an array of booleans. Each entry is whether the corresponding entries in a and b are numerically close. The arrays will be broadcasted. 
+         *  Return an array of booleans. Each entry is whether the corresponding entries in a and b are numerically close. The arrays will be broadcasted.
          * @param b - Second array to compare.
          * @param rel_tol - The maximum relative error.
          * @param abs_tol - The maximum absolute error.
@@ -759,7 +759,7 @@ export class tensor {
             return arithmetic.is_close(this, b, rel_tol, abs_tol);
         }
 
-    //#endregion Binary Methods
+    //#endregion BINARY METHODS
 
     //#region OPERATIONS
 
