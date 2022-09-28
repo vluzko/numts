@@ -2,6 +2,7 @@ import {tensor, Broadcastable} from '../tensor';
 import * as constructors from './constructors';
 import {indexing} from './indexing';
 import {utils} from '../utils';
+import { Shape } from '../types';
 
 /**
  * Convert a broadcastable value to a tensor.
@@ -330,9 +331,49 @@ export function _eq(a: Broadcastable, b: Broadcastable) {
     return _binary_broadcast(a, b, (x, y) => +(x === y), 'uint8');
 }
 
+/**
+ * Determine whether the elements of each tensor are close
+ * @param a  - First tensor
+ * @param b - Second tensor
+ * @param rel_tol - Relative tolerance
+ * @param abs_tol - Absolute tolerance
+ * @returns - Tensor of booleans
+ */
 export function is_close(a: tensor, b: tensor, rel_tol: number = 1e-5, abs_tol: number = 1e-8): tensor {
     const compare = (x: number, y: number): number => {
         return +(Math.abs(x - y) <= abs_tol + (rel_tol * Math.abs(y)));
     }
     return _binary_broadcast(a, b, compare);
+}
+
+/**
+ * Computer a tensor product along the given axes
+ * @param a - The first tensor
+ * @param b - The second tensor
+ * @param axes - The axes to compute the product over
+ * @returns - The tensor product
+ */
+export function tensordot(a: tensor, b: tensor, axes: number | Shape): tensor {
+    if (typeof axes === 'number') {
+        return _one_axis_tensordot(a, b, axes);
+    } else {
+    }
+    throw new Error('Not implemented')
+}
+
+function _one_axis_tensordot(a: tensor, b: tensor, axis: number): tensor {
+    // Check axis isn't too big
+    if (a.shape.length < axis || b.shape.length < axis) {
+        throw new Error(`Invalid axes for tensor dot. axes=${axis}, a.shape=${a.shape.length}, b.shape=${b.shape.length}`);
+    }
+
+    // Check overlapping dimensions are the same
+    for (let i=0; i<axis; i++) {
+        const a_idx = a.shape.length - i - 1;
+        if (a.shape[a_idx] !== b.shape[i]) {
+            throw new Error();
+            // throw new Error(`Invalid axes for tensor dot. axes=${axis}, a.shape=${a.shape}, b.shape=${b.shape}`);
+        }
+    }
+    throw new Error();
 }
