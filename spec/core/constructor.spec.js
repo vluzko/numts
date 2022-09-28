@@ -123,3 +123,15 @@ describe('from_json.', function() {
         expect(a.data).toEqual(new Float64Array([1, 2, 3, 4]))
     })
 })
+
+
+describe('where', function() {
+    test('Simple', function() {
+        const cond = constructors.from_nested_array([true, false, true, false, true]);
+        const a = constructors.arange(5);
+        const b = constructors.arange(6, 11);
+        const val = constructors.where(cond, a, b);
+        expect(val.shape).toEqual(new Uint32Array([5]));
+        expect(val.data).toEqual(new Int32Array([0, 7, 2, 9, 4]));
+    });
+})

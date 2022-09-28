@@ -2,6 +2,100 @@ import {tensor, Shape, errors, ArrayOptions} from '../tensor';
 import {indexing} from './indexing';
 import {utils} from '../utils';
 
+/**
+ * Create a tensor containing a range of integers.
+ * @param {number} start_or_stop  - If no other arguments are passed, the upper bound of the range (with lower bound zero). Otherwise this is the lower bound.
+ * @param {number} stop           - The upper bound of the range.
+ * @param {number} step           - The step size between elements in the range.
+ * @param {Shape} shape           - The shape to return.
+ * @return {tensor}             - A one-dimensional array containing the range.
+ */
+export function arange(start_or_stop: number, stop?: number, step?: number, shape?: Shape): tensor {
+    if (step === undefined) {
+      step = 1;
+    }
+  
+    let start;
+    if (stop === undefined) {
+      stop = start_or_stop;
+      start = 0;
+    } else {
+      start = start_or_stop;
+    }
+  
+    let size = Math.abs(Math.floor((stop - start) / step));
+    if (shape === undefined) {
+      shape = new Uint32Array([size]);
+    } else {
+      const shape_size = indexing.compute_size(shape);
+      if (shape_size !== size) {
+        throw new Error(`Mismatch between size of range (${size}) and size of shape (${shape_size}`);
+      }
+    }
+  
+    let iter = {
+      [Symbol.iterator]: function*() {
+        let i = start;
+        while (i < real_stop) {
+          yield i;
+          i += step;
+        }
+      }
+    };
+  
+    let real_stop = stop < start ? -stop : stop;
+  
+    return from_iterable(iter, shape, "int32");
+}
+
+/**
+ * Create a tensor containing the specified data
+ * @param data
+ * @param shape
+ * @param options
+ * @return {tensor}
+ */
+export function array(data, shape?, options?: ArrayOptions): tensor {
+    let final_shape;
+    let size;
+    let dtype;
+
+    if (shape === undefined) {
+        shape = new Uint32Array([data.length]);
+    }
+
+    if (options && options.dtype) {
+        dtype = options.dtype
+    }
+
+    if (options && options.disable_checks === true) {
+        final_shape = shape;
+        size = indexing.compute_size(shape);
+    } else {
+        if (!utils.is_numeric_array(data)) {
+            throw new errors.BadData();
+        }
+
+        if (shape === undefined || shape === null) {
+            final_shape = new Uint32Array([data.length]);
+        } else {
+            final_shape = indexing.compute_shape(shape);
+        }
+
+        // Compute length
+        size = indexing.compute_size(final_shape);
+
+        if (size !== data.length) {
+            throw new errors.MismatchedShapeSize()
+        }
+    }
+
+    const stride = indexing.stride_from_shape(final_shape);
+    const offset = new Uint32Array(final_shape.length);
+    const dstride = stride.slice();
+
+    return new tensor(data, final_shape, offset, stride, dstride, size, dtype);
+}
 
 /**
  * Create a tensor from JSON.
@@ -128,97 +222,34 @@ export function eye(m: number, dtype?: string): tensor {
     return array;
 }
 
+// TODO: Broadcasting
 /**
- * Create a tensor containing the specified data
- * @param data
- * @param shape
- * @param options
- * @return {tensor}
- */
-export function array(data, shape?, options?: ArrayOptions): tensor {
-    let final_shape;
-    let size;
-    let dtype;
-
-    if (shape === undefined) {
-        shape = new Uint32Array([data.length]);
+ * Return values from a or b according to the condition
+ * @param {tensor} condition - Determines which array to pull from
+ * @param {tensor} a - Array to pull from when condition is true
+ * @param {tensor} b - Array to pull from when condition is false
+ * @returns {tensor} - Array of values from a or b
+ **/
+export function where(condition: tensor, a: tensor, b: tensor): tensor {
+    if (!utils.array_equal(condition.shape, a.shape) || !utils.array_equal(condition.shape, b.shape)) {
+        throw new errors.BadShape(`Condition and a must have the same shape. Condition shape: ${condition.shape}, a shape: ${a.shape}`);
     }
-
-    if (options && options.dtype) {
-        dtype = options.dtype
-    }
-
-    if (options && options.disable_checks === true) {
-        final_shape = shape;
-        size = indexing.compute_size(shape);
-    } else {
-        if (!utils.is_numeric_array(data)) {
-            throw new errors.BadData();
+    let c_iter = condition._iorder_value_iterator();
+    let a_iter = a._iorder_value_iterator()[Symbol.iterator]();
+    let b_iter = b._iorder_value_iterator()[Symbol.iterator]();
+    const iter: Iterable<number> = {
+        [Symbol.iterator]: function* gen(): Generator<number> {
+            for (let c of c_iter) {
+                const a_val = a_iter.next();
+                const b_val = b_iter.next();
+                if (c === 0) {
+                    yield b_val.value;
+                } else {
+                    yield a_val.value;
+                }
+            }
         }
-
-        if (shape === undefined || shape === null) {
-            final_shape = new Uint32Array([data.length]);
-        } else {
-            final_shape = indexing.compute_shape(shape);
-        }
-
-        // Compute length
-        size = indexing.compute_size(final_shape);
-
-        if (size !== data.length) {
-            throw new errors.MismatchedShapeSize()
-        }
-    }
-
-    const stride = indexing.stride_from_shape(final_shape);
-    const offset = new Uint32Array(final_shape.length);
-    const dstride = stride.slice();
-
-    return new tensor(data, final_shape, offset, stride, dstride, size, dtype);
-}
-
-/**
- * Create a tensor containing a range of integers.
- * @param {number} start_or_stop  - If no other arguments are passed, the upper bound of the range (with lower bound zero). Otherwise this is the lower bound.
- * @param {number} stop           - The upper bound of the range.
- * @param {number} step           - The step size between elements in the range.
- * @param {Shape} shape           - The shape to return.
- * @return {tensor}             - A one-dimensional array containing the range.
- */
-export function arange(start_or_stop: number, stop?: number, step?: number, shape?: Shape): tensor {
-    if (step === undefined) {
-      step = 1;
-    }
-  
-    let start;
-    if (stop === undefined) {
-      stop = start_or_stop;
-      start = 0;
-    } else {
-      start = start_or_stop;
-    }
-  
-    let size = Math.abs(Math.floor((stop - start) / step));
-    if (shape === undefined) {
-      shape = new Uint32Array([size]);
-    } else {
-      const shape_size = indexing.compute_size(shape);
-      if (shape_size !== size) {
-        throw new Error(`Mismatch between size of range (${size}) and size of shape (${shape_size}`);
-      }
-    }
-  
-    let iter = {
-      [Symbol.iterator]: function*() {
-        let i = start;
-        while (i < real_stop) {
-          yield i;
-          i += step;
-        }
-      }
     };
-  
-    let real_stop = stop < start ? -stop : stop;
-  
-    return from_iterable(iter, shape, "int32");
+
+    return from_iterable(iter, condition.shape, a.dtype);
 }
