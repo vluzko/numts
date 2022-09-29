@@ -32,9 +32,12 @@ export namespace errors {
             super('Array sizes do not match.')
         }
     }
+    /**
+     * Tried to perform an operation on two or more tensors with incompatible shapes
+     */
     export class MismatchedShapes extends Error {
-        constructor() {
-            super('Array shapes do not match.')
+        constructor(...shapes: Shape[]) {
+            super(`Array shapes do not match. ${shapes}`);
         }
     }
     export class BadData extends Error {
@@ -56,11 +59,11 @@ export class tensor {
     readonly offset: Uint32Array;
     readonly stride: Uint32Array;
     readonly dstride: Uint32Array;
-    public initial_offset: number;
-    public shape: Uint32Array;
-    public length: number;
-    public dtype: string;
-    public is_view: boolean;
+    readonly initial_offset: number;
+    readonly shape: Uint32Array;
+    readonly length: number;
+    readonly dtype: string;
+    readonly is_view: boolean;
 
     /**
      *
@@ -142,10 +145,6 @@ export class tensor {
 
     diagonal() { }
 
-    dot(b: tensor) {
-        return tensor.dot(this, b);
-    }
-
     //#region METHOD CONSTRUCTORS
 
         /**
@@ -197,60 +196,60 @@ export class tensor {
 
     // #region AGGREGATION
 
-    /**
-     * Return true if all elements are true.
-     */
-    all(axis?: number): tensor | number {
-        return aggregation._all(this, axis);
-    }
+        /**
+         * Return true if all elements are true.
+         */
+        all(axis?: number): tensor | number {
+            return aggregation._all(this, axis);
+        }
 
-    /**
-     * Return true if any element is true.
-     */
-    any(axis?: number): tensor | number {
-        return aggregation._any(this, axis);
-    }
+        /**
+         * Return true if any element is true.
+         */
+        any(axis?: number): tensor | number {
+            return aggregation._any(this, axis);
+        }
 
-    /**
-     * Calculate argmin along the given axis.
-     */
-    argmin(axis?: number): tensor | number {
-        return aggregation._argmin(this, axis);
-    }
+        /**
+         * Calculate argmin along the given axis.
+         */
+        argmin(axis?: number): tensor | number {
+            return aggregation._argmin(this, axis);
+        }
 
-    /**
-     * Calculate argmax along the given axis.
-     */
-    argmax(axis?: number): tensor | number {
-        return aggregation._argmax(this, axis);
-    }
+        /**
+         * Calculate argmax along the given axis.
+         */
+        argmax(axis?: number): tensor | number {
+            return aggregation._argmax(this, axis);
+        }
 
-    /**
-     * Returns the maximum element of the array.
-     * @param {number} axis
-     * @return {number}
-     */
-    max(axis?: number): tensor | number {
-        return aggregation._max(this, axis);
-    }
+        /**
+         * Returns the maximum element of the array.
+         * @param {number} axis
+         * @return {number}
+         */
+        max(axis?: number): tensor | number {
+            return aggregation._max(this, axis);
+        }
 
-    /**
-     * Returns the minimum element of the array along the specified axis.
-     * @param {number} axis
-     * @return {number}
-     */
-    min(axis?: number): tensor | number {
-        return aggregation._min(this, axis);
-    }
+        /**
+         * Returns the minimum element of the array along the specified axis.
+         * @param {number} axis
+         * @return {number}
+         */
+        min(axis?: number): tensor | number {
+            return aggregation._min(this, axis);
+        }
 
-    /**
-     * Sum the entries of the array along the specified axis.
-     * @param {number} axis
-     * @return {number}
-     */
-    sum(axis?: number): tensor | number {
-        return aggregation._sum(this, axis);
-    }
+        /**
+         * Sum the entries of the array along the specified axis.
+         * @param {number} axis
+         * @return {number}
+         */
+        sum(axis?: number): tensor | number {
+            return aggregation._sum(this, axis);
+        }
 
     // #endregion AGGREGATION
 
@@ -757,6 +756,14 @@ export class tensor {
          */
         is_close(b: tensor, rel_tol: number = 1e-5, abs_tol: number = 1e-8): tensor {
             return arithmetic.is_close(this, b, rel_tol, abs_tol);
+        }
+
+        /**
+         * Compute the dot product of this and another tensor
+         * @param b - The tensor to dot with.
+         **/
+        dot(b: tensor): number {
+            return arithmetic.dot(this, b);
         }
 
     //#endregion BINARY METHODS

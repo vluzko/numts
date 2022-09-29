@@ -207,20 +207,36 @@ describe('tensordot.', function () {
     describe('dot_product.', function () {
 
         // Should be equivalent to a dot product
-        fit('one_dim_axes_1.', function () {
+        test('one_dim_axes_1.', function () {
             const a = numts.arange(10);
             const b = numts.arange(10);
             const c = binary_ops.tensordot(a, b, 1);
             expect(c.shape).toEqual(new Uint32Array([1]));
-            expect(c.data).toEqual(new Uint32Array([285]));
+            expect(c.data).toEqual(new Int32Array([285]));
+        });
+
+        test('one_dimensional_b', function() {
+            const a = numts.arange(10).reshape(2, 5);
+            const b = numts.arange(5);
+            const c = binary_ops.tensordot(a, b, 1);
+            expect(c.shape).toEqual(new Uint32Array([1]));
+            expect(c.data).toEqual(new Int32Array([285]));
+        });
+
+        test('one_dimensional_a', function() {
+            const a = numts.arange(5);
+            const b = numts.arange(10).reshape(5, 2);
+            const c = binary_ops.tensordot(a, b, 1);
+            expect(c.shape).toEqual(new Uint32Array([1]));
+            expect(c.data).toEqual(new Int32Array([285]));
         });
 
         // Should be equivalent to matrix multiplication
         test('one_dim_axes_2.', function () {
-            const a = numts.arange(25).reshape(5, 5);
+            const a = numts.arange(4).reshape(2, 2);
             const c = binary_ops.tensordot(a, a, 1);
-            expect(c.shape).toEqual(new Uint32Array([5, 5]));
-            expect(c.data).toEqual(new Uint32Array([285]));
+            expect(c.shape).toEqual(new Uint32Array([2, 2]));
+            expect(c.data).toEqual(new Int32Array([2, 6, 3, 11]));
         });
     });
 });

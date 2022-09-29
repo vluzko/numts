@@ -1,4 +1,4 @@
-import {tensor, Broadcastable} from '../tensor';
+import {tensor, Broadcastable, errors} from '../tensor';
 import * as constructors from './constructors';
 import {indexing} from './indexing';
 import {utils} from '../utils';
@@ -371,9 +371,44 @@ function _one_axis_tensordot(a: tensor, b: tensor, axis: number): tensor {
     for (let i=0; i<axis; i++) {
         const a_idx = a.shape.length - i - 1;
         if (a.shape[a_idx] !== b.shape[i]) {
-            throw new Error();
+            throw new errors.MismatchedShapes(a.shape, b.shape);
             // throw new Error(`Invalid axes for tensor dot. axes=${axis}, a.shape=${a.shape}, b.shape=${b.shape}`);
         }
     }
+
+    // Special case the dot product. Just easier to write this way
+    if (a.shape.length === 1 && b.shape.length === 1) {
+        const dtype = utils._dtype_join(a.dtype, b.dtype);
+        return constructors.from_nested_array([dot(a, b)], dtype);
+    }
+
+    const a_dims = a.shape.slice(0, a.shape.length - axis);
+    const b_dims = b.shape.slice(axis);
+    let final_shape = new Uint32Array([...a_dims, ...b_dims]);
+    let iter_shape: Uint32Array;
+    if (final_shape.length === 0) {
+        final_shape = new Uint32Array([1]);
+        iter_shape = new Uint32Array([1, 1]);
+    } else {
+        iter_shape = final_shape;
+    }
+
+    const result_index_iterator = indexing.iorder_index_iterator(iter_shape);
+    const iter = {
+        [Symbol.iterator]: function* gen() {
+            for (let idx of result_index_iterator) {
+                // Dot product of axis -idx in a and axis idx in b.
+                const a_idx = axis - idx[0] - 1;
+                const a_slice = a.slice(a_idx, null);
+                const b_idx = idx[1];
+                const b_slice = b.slice(null, b_idx);
+                yield dot(a_slice, b_slice);
+            }
+        }
+    }
+
+    return constructors.from_iterable(iter, final_shape, utils._dtype_join(a.dtype, b.dtype));
+
+    // const final_shape = a.shape.slice(0, a.shape.length - axis).concat(b.shape.slice(axis));
     throw new Error();
 }
