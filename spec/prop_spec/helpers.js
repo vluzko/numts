@@ -134,11 +134,11 @@ function check_arrays(f) {
       const b = numts.from_iterable(data_2, shape_2);
       return f(a, b);
     };
-  
+
     const params = {
       numRuns: 10
     };
-  
+
     fc.assert(fc.property(broadcastable_non_zero(1e-5, 1e5), check), params);
 }
 
@@ -151,7 +151,7 @@ function check_random_array(f) {
   const params = {
     numRuns: 15
   };
-  fc.assert(fc.property(squarish_array, check), params);  
+  fc.assert(fc.property(squarish_array, check), params);
   fc.assert(fc.property(many_dimensions, check), params);
   fc.assert(fc.property(large_dimensions, check), params);
 }

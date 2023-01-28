@@ -4,7 +4,7 @@ import {indexing} from "./tensor_core/indexing";
 import {Shape} from "./types";
 
 /**
- * 
+ *
  * @param lower - The lower bound of the distribution. Defaults to 0.
  * @param upper - The upper bound of the distribution. Defaults to 1.
  * @param shape - The shape of the array to generate. Defaults to [1].
@@ -107,7 +107,7 @@ function ziggurat_normal(): number {
 // The x-coordinate of the start of the last normal layer.
 const RIGHT_MOST = 3.44428647676;
 
-// Tabulated values of y[i] for the normal distribution. 
+// Tabulated values of y[i] for the normal distribution.
 const ytab_normal = new Float64Array([
   1.        , 0.96359862, 0.93628081, 0.9130411 , 0.89227851,
   0.87323936, 0.85549641, 0.83877893, 0.82290208, 0.80773274,

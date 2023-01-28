@@ -33,4 +33,3 @@ export function compare_to_python(numts_func: any, python_func: string, args: an
     const py_result = call_python(python_func, args, kwargs);
     throw new Error('Not implemented.');
 }
-

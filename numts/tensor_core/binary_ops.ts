@@ -80,7 +80,7 @@ export function _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: num
 }
 
 /**
- * 
+ *
  * @param {Broadcastable} a -
  * @param {Broadcastable} b -
  * @returns {tensor}      -

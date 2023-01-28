@@ -20,10 +20,10 @@ def to_console(f):
 
 
 def json_to_np(json_array: Union[dict, np.ndarray]) -> np.ndarray:
-    
+
     if isinstance(json_array, np.ndarray):
         return json
-    else: 
+    else:
         array = np.array(json_array['data'], dtype=json_array['dtype'])
         return array
 

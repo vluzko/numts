@@ -395,7 +395,7 @@ describe('Unary methods.', function () {
 
   describe('Methods along axes.', function () {
 
-    
+
 
 
   });
@@ -418,7 +418,7 @@ describe('Broadcasting.', function () {
   });
 
   describe('From failures.', function() {
-  }); 
+  });
 
   describe('_binary_broadcast.', function () {
 
@@ -529,7 +529,7 @@ describe('Aggregation.', function () {
 
   describe('variance.', function() {
     test('Basic.', function() {
-      
+
     })
   });
 
@@ -559,7 +559,7 @@ describe('Aggregation.', function () {
         [25, 27, 29, 31, 33],
         [45, 47, 49, 51, 53]
       ];
-  
+
       const expected_array = numts.from_nested_array(expected_data, 'int32');
       expect(expected_array.equals(y)).toBe(true);
     });
@@ -584,7 +584,7 @@ describe('Method constructors.', function() {
       let expected = numts.arange(30);
       expect(b.equals(expected)).toBe(true);
     })
-    
+
   });
 
   describe('transpose.', function() {
@@ -595,7 +595,7 @@ describe('Method constructors.', function() {
         [0, 2],
         [1, 3]
       ], 'int32');
-      
+
       expect(b.equals(expected)).toBe(true);
     });
 

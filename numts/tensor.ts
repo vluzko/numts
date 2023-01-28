@@ -407,15 +407,15 @@ export class tensor {
     /**
      * Return a slice of an array. Does not copy the underlying data. Does not drop dimensions.
      * @param indices - The indices to slice on. Can be either a single array / TypedArray, or a spread of integers.
-     *                  
-     * 
+     *
+     *
      * @example
      *    let a = numts.arange(24).reshape(2, 3, 4).slice(0); // a is the [0, :, :] slice.
      * @example
      *    let b = numts.arange(24).reshape(2, 3, 4).slice([2, 3]); // b is the [2:3, :, :] slice.
      * @example
      *    let b = numts.arange(24).reshape(2, 3, 4).slice(2, 3); // b is the [2, 3, :] slice.
-     *   
+     *
      */
     slice(...indices: Array<number | number[]>): tensor {
 
