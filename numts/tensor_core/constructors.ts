@@ -14,7 +14,7 @@ export function arange(start_or_stop: number, stop?: number, step?: number, shap
     if (step === undefined) {
       step = 1;
     }
-  
+
     let start;
     if (stop === undefined) {
       stop = start_or_stop;
@@ -22,7 +22,7 @@ export function arange(start_or_stop: number, stop?: number, step?: number, shap
     } else {
       start = start_or_stop;
     }
-  
+
     let size = Math.abs(Math.floor((stop - start) / step));
     if (shape === undefined) {
       shape = new Uint32Array([size]);
@@ -32,7 +32,7 @@ export function arange(start_or_stop: number, stop?: number, step?: number, shap
         throw new Error(`Mismatch between size of range (${size}) and size of shape (${shape_size}`);
       }
     }
-  
+
     let iter = {
       [Symbol.iterator]: function*() {
         let i = start;
@@ -42,9 +42,9 @@ export function arange(start_or_stop: number, stop?: number, step?: number, shap
         }
       }
     };
-  
+
     let real_stop = stop < start ? -stop : stop;
-  
+
     return from_iterable(iter, shape, "int32");
 }
 

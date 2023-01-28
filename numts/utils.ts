@@ -213,7 +213,7 @@ export namespace utils {
   }
 
   /**
-   * Get lower indices and steps for a slice over an entire shape. 
+   * Get lower indices and steps for a slice over an entire shape.
    * @param shape - The shape of the array.
    */
   export function shape_to_lus(shape: Uint32Array): [Uint32Array, Uint32Array, Uint32Array] {

@@ -155,7 +155,7 @@ describe('Iterators.', function () {
   steps.fill(1);
   describe('iorder_index_iterator.', function() {
     it('Basic test.', function() {
-      
+
       const iter = indexing.iorder_index_iterator(new Uint32Array(a.shape.length), a.shape, steps);
       let prev = -1;
       for (let i of iter) {

@@ -1,7 +1,8 @@
-import {tensor, Broadcastable} from '../tensor';
+import {tensor, Broadcastable, errors} from '../tensor';
 import * as constructors from './constructors';
 import {indexing} from './indexing';
 import {utils} from '../utils';
+import { Shape } from '../types';
 
 /**
  * Convert a broadcastable value to a tensor.
@@ -79,7 +80,7 @@ export function _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: num
 }
 
 /**
- * 
+ *
  * @param {Broadcastable} a -
  * @param {Broadcastable} b -
  * @returns {tensor}      -
@@ -330,9 +331,86 @@ export function _eq(a: Broadcastable, b: Broadcastable) {
     return _binary_broadcast(a, b, (x, y) => +(x === y), 'uint8');
 }
 
+/**
+ * Determine whether the elements of each tensor are close
+ * @param a  - First tensor
+ * @param b - Second tensor
+ * @param rel_tol - Relative tolerance
+ * @param abs_tol - Absolute tolerance
+ * @returns - Tensor of booleans
+ */
 export function is_close(a: tensor, b: tensor, rel_tol: number = 1e-5, abs_tol: number = 1e-8): tensor {
     const compare = (x: number, y: number): number => {
         return +(Math.abs(x - y) <= abs_tol + (rel_tol * Math.abs(y)));
     }
     return _binary_broadcast(a, b, compare);
+}
+
+/**
+ * Computer a tensor product along the given axes
+ * @param a - The first tensor
+ * @param b - The second tensor
+ * @param axes - The axes to compute the product over
+ * @returns - The tensor product
+ */
+export function tensordot(a: tensor, b: tensor, axes: number | Shape): tensor {
+    if (typeof axes === 'number') {
+        return _one_axis_tensordot(a, b, axes);
+    } else {
+        throw new Error('Not implemented')
+    }
+}
+
+function _one_axis_tensordot(a: tensor, b: tensor, axis: number): tensor {
+    // Check axis isn't too big
+    if (a.shape.length < axis || b.shape.length < axis) {
+        throw new Error(`Invalid axes for tensor dot. axes=${axis}, a.shape=${a.shape.length}, b.shape=${b.shape.length}`);
+    }
+
+    // Check overlapping dimensions are the same
+    for (let i=0; i<axis; i++) {
+        const a_idx = a.shape.length - i - 1;
+        if (a.shape[a_idx] !== b.shape[i]) {
+            throw new errors.MismatchedShapes(a.shape, b.shape);
+        }
+    }
+
+    // Special case the dot product. Just easier to write this way
+    if (a.shape.length === 1 && b.shape.length === 1) {
+        const dtype = utils._dtype_join(a.dtype, b.dtype);
+        return constructors.from_nested_array([dot(a, b)], dtype);
+    }
+    const a_dims = a.shape.slice(0, a.shape.length - axis);
+    const b_dims = b.shape.slice(axis);
+    let final_shape = new Uint32Array([...a_dims, ...b_dims]);
+    let iter_shape: Uint32Array;
+    if (final_shape.length === 0) {
+        final_shape = new Uint32Array([1]);
+        iter_shape = new Uint32Array([1, 1]);
+    } else {
+        iter_shape = final_shape;
+    }
+
+    // Special case one-dimensional arrays
+    if (a.shape.length === 1) {
+        return _one_axis_tensordot(a.reshape([1, a.shape[0]]), b, axis).reshape(final_shape);
+    } else if (b.shape.length === 1) {
+        return _one_axis_tensordot(a, b.reshape([b.shape[0], 1]), axis).reshape(final_shape);
+    }
+
+    const result_index_iterator = indexing.iorder_index_iterator(iter_shape);
+    const iter = {
+        [Symbol.iterator]: function* gen() {
+            for (let idx of result_index_iterator) {
+                // Dot product of axis -idx in a and axis idx in b.
+                const a_idx = axis - idx[0] - 1;
+                const a_slice = a.slice(a_idx, null);
+                const b_idx = idx[1];
+                const b_slice = b.slice(null, b_idx);
+                yield dot(a_slice, b_slice);
+            }
+        }
+    }
+
+    return constructors.from_iterable(iter, final_shape, utils._dtype_join(a.dtype, b.dtype));
 }

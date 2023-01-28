@@ -10,4 +10,3 @@ Just run `tsc`
 * `npm run test` will run all non-property based tests.
 * `npm run prop` will run all property based tests.
 * `jest spec/` will run all tests
-

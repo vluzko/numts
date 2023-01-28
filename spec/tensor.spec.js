@@ -38,34 +38,34 @@ describe('Shapes.', function () {
     });
 
     describe('Failing tests.', function () {
-      it('Data not an array.', function () {
+      test('Data not an array.', function () {
         expect(() => numts.array(1)).toThrow(new errors.BadData());
       });
 
-      it('Data not numeric.', function () {
+      test('Data not numeric.', function () {
         expect(() => numts.array(['asd'])).toThrow(new errors.BadData());
       });
 
-      it('Wrong shape type.', function () {
+      test('Wrong shape type.', function () {
         expect(() => numts.array([], 'asdf')).toThrow(new Error('Shape must be an int, an array of numbers, or a Uint32Array.'));
       });
 
-      it('No shape parameter.', function () {
+      test('No shape parameter.', function () {
         const array = numts.array([1, 2, 3, 4]);
         expect(array.shape).toEqual(new Uint32Array([4]));
         expect(array.length).toBe(4);
       });
 
       describe('Wrong dimensions.', function () {
-        it('Wrong length.', function () {
+        test('Wrong length.', function () {
           expect(() => numts.array([1, 2, 3], [2, 2])).toThrow(new errors.MismatchedShapeSize());
         });
 
-        it('Null shape', function () {
+        test('Null shape', function () {
           expect(() => numts.array([1, 2, 3], [null])).toThrow(new Error('Shape array must be numeric.'));
         });
 
-        it('Empty shape.', function () {
+        test('Empty shape.', function () {
           expect(() => numts.array([1, 2, 3], [])).toThrow(new errors.MismatchedShapeSize());
         });
       });
@@ -74,33 +74,33 @@ describe('Shapes.', function () {
 
 
   describe('Indices.', function () {
-  it('_compute_real_index.', function () {
+  test('_compute_real_index.', function () {
     expect(numts.zeros([2, 2])._compute_real_index([1, 1])).toBe(3);
     expect(numts.zeros([2, 3, 4, 5]));
   });
 
   describe('g.', function () {
-    it('3-dims.', function () {
+    test('3-dims.', function () {
       const array = numts.arange(27).reshape([3, 3, 3]);
       expect(array.g(1, 1, 1)).toBe(13);
       expect(array.g(1, 0, 1)).toBe(10);
       expect(array.g(2, 1, 0)).toBe(21);
     });
 
-    it('4-dims.', function () {
+    test('4-dims.', function () {
       const array = numts.arange(120).reshape([2, 3, 4, 5]);
       expect(array.g(1, 2, 3, 4)).toBe(119);
       expect(array.g(0, 2, 3, 4)).toBe(59);
       expect(array.g(0, 0, 0, 0)).toBe(0);
     });
 
-    it('negatives indices.', function () {
+    test('negatives indices.', function () {
       const array = numts.arange(40).reshape([5, 4, 2]);
       expect(array.g(-1, -2, -1)).toBe(37);
     });
 
     describe('From failures.', function() {
-      it('From QR decomp.', function() {
+      test('From QR decomp.', function() {
         const a = numts.from_nested_array([[0, 1, 0.5345224838248488, 0.8017837257372732]])
         const index = new Uint32Array([0, 1]);
         const b = a.g(...index);
@@ -112,7 +112,7 @@ describe('Shapes.', function () {
 });
 
 describe('to_nested_array.', function() {
-    it('Simple.', function() {
+    test('Simple.', function() {
         let x = numts.arange(10).reshape(2, 5);
         let y = x.to_nested_array();
         expect(y).toEqual([
@@ -126,7 +126,7 @@ describe('Iterators.', function () {
 
   describe('data_index_iterator.', function () {
 
-    it('one-dimensional.', function () {
+    test('one-dimensional.', function () {
       let tensor = numts.arange(0, 10);
       let indices = [...tensor._iorder_index_iterator()];
       let real_indices = [...tensor._iorder_data_iterator()];
@@ -138,7 +138,7 @@ describe('Iterators.', function () {
       });
     });
 
-    it('two-dimensional.', function () {
+    test('two-dimensional.', function () {
       let tensor = numts.arange(0, 10).reshape([5, 2]);
       let indices = [...tensor._iorder_index_iterator()];
       let real_indices = [...tensor._iorder_data_iterator()];
@@ -150,7 +150,7 @@ describe('Iterators.', function () {
       });
     });
 
-    it('four-dimensional.', function () {
+    test('four-dimensional.', function () {
       let tensor = numts.arange(0, 16).reshape(new Uint32Array([2, 2, 2, 2]));
       let indices = [...tensor._iorder_index_iterator()];
       let real_indices = [...tensor._iorder_data_iterator()];
@@ -165,7 +165,7 @@ describe('Iterators.', function () {
   });
 
   describe('_index_iterator.', function () {
-    it('two-dimensional', function () {
+    test('two-dimensional', function () {
       let array = numts.zeros([2, 2]);
       const expected = [[0, 0], [0, 1], [1, 0], [1, 1]].map(e => new Uint32Array(e));
       const actual = Array.from(array._iorder_index_iterator());
@@ -173,7 +173,7 @@ describe('Iterators.', function () {
     });
   });
 
-  it('_iorder_value_iterator.', function () {
+  test('_iorder_value_iterator.', function () {
     let array = numts.array([1, 2, 3, 4]);
     const expected = [1, 2, 3, 4];
     const actual = Array.from(array._iorder_value_iterator());
@@ -186,13 +186,13 @@ describe('Iterators.', function () {
 describe('Slicing.', function () {
 
   describe('slice.', function () {
-    it('empty slice.', function () {
+    test('empty slice.', function () {
       let a = numts.arange(15).reshape(3, 5);
       let b = a.slice();
       expect(a.equals(b));
     });
 
-    it('basic test.', function () {
+    test('basic test.', function () {
       const base_array = numts.arange(16).reshape([4, 4]);
       const slice = base_array.slice([0, 2], [1, 3]);
 
@@ -206,7 +206,7 @@ describe('Slicing.', function () {
       expect(slice.data).toEqual(base_array.data);
     });
 
-    it('single value slice.', function () {
+    test('single value slice.', function () {
       const base_array = numts.arange(16).reshape([4, 4]);
       const slice = base_array.slice(0);
       const expected = numts.arange(4);
@@ -216,7 +216,7 @@ describe('Slicing.', function () {
       expect(slice.data).toEqual(base_array.data);
     });
 
-    it('Successive slices.', function () {
+    test('Successive slices.', function () {
       const base_array = numts.arange(16).reshape([4, 4]);
       const first_slice = base_array.slice([0, 2], [1, 3]);
       expect(first_slice.shape).toEqual(new Uint32Array([2, 2]));
@@ -228,7 +228,7 @@ describe('Slicing.', function () {
       expect(expected.equals(actual)).toBe(true);
     });
 
-    it('Slice with large steps.', function () {
+    test('Slice with large steps.', function () {
       const base_array = numts.arange(16).reshape([4, 4]);
       const slice = base_array.slice([0, 4, 2], [1, 3]);
 
@@ -242,7 +242,7 @@ describe('Slicing.', function () {
 
     });
 
-    it('Subdimensions', function () {
+    test('Subdimensions', function () {
       const base_array = numts.arange(120).reshape([4, 5, 6]);
       const first = base_array.slice([0, 4, 2], [1, 3, 2]);
       expect(first.shape).toEqual(new Uint32Array([2, 1, 6]));
@@ -256,7 +256,7 @@ describe('Slicing.', function () {
       expect(expected).toEqual(actual);
     });
 
-    it('Successive slice, large steps.', function () {
+    test('Successive slice, large steps.', function () {
       const base_array = numts.arange(120).reshape([4, 5, 6]);
       const first = base_array.slice([0, 4, 2], [1, 3, 2]);
       expect(first.shape).toEqual(new Uint32Array([2, 1, 6]));
@@ -273,14 +273,14 @@ describe('Slicing.', function () {
       expect(expected.equals(actual)).toBe(true);
     });
 
-    it('slice with last dropped', function () {
+    test('slice with last dropped', function () {
       const a = numts.arange(24).reshape(2, 3, 4);
       const slice = a.slice(...[null, null, 1]);
       expect([...slice._iorder_value_iterator()]).toEqual([1, 5, 9, 13, 17, 21]);
     });
 
     describe('From failures.', function () {
-      it('1: broadcast_matmul break.', function () {
+      test('1: broadcast_matmul break.', function () {
         const a = numts.arange(24).reshape(2, 3, 4);
         const slice = a.slice(...[1]);
         expect([...slice._iorder_value_iterator()]).toEqual([
@@ -288,14 +288,14 @@ describe('Slicing.', function () {
         ]);
       });
 
-      it('2: successive slice break.', function(){
+      test('2: successive slice break.', function(){
         const a = numts.arange(24).reshape(2, 3, 4);
         const first_slice = a.slice(0);
         const second_slice = first_slice.slice(1);
         expect([...second_slice._iorder_value_iterator()]).toEqual([4, 5, 6, 7]);
       });
 
-      it('3: qr decomposition', function(){
+      test('3: qr decomposition', function(){
         // RESOLVED. No change required. Spec misunderstanding.
         const a = numts.arange(15).reshape(5, 3);
         const b = a.slice([0, null], [0, 1]);
@@ -306,7 +306,7 @@ describe('Slicing.', function () {
   });
 
   describe('reshape.', function () {
-    it('array passed', function () {
+    test('array passed', function () {
       let start = numts.from_nested_array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
       let reshaped = start.reshape(new Uint32Array([2, 2, 3]));
       let expected = numts.from_nested_array([
@@ -320,7 +320,7 @@ describe('Slicing.', function () {
       expect(reshaped.equals(expected)).toBe(true);
     });
 
-    it('spread.', function () {
+    test('spread.', function () {
       const array = numts.arange(10).reshape(2, 5);
       expect(array.shape).toEqual(new Uint32Array([2, 5]));
       expect(array).toEqual(numts.from_nested_array([
@@ -331,14 +331,14 @@ describe('Slicing.', function () {
   });
 
   describe('squeeze.' ,function () {
-    it('Simple test.', function () {
+    test('Simple test.', function () {
       const array = numts.arange(5).reshape([1, 5]);
       const dropped = array.squeeze();
       const expected = numts.arange(5);
       expect(expected.equals(dropped)).toBe(true);
     });
 
-    it('Multiple dimensions.', function () {
+    test('Multiple dimensions.', function () {
       const array = numts.arange(25).reshape([1, 5, 1, 1, 5, 1]);
       const dropped = array.squeeze();
       const expected = numts.arange(25).reshape([5, 5]);
@@ -350,13 +350,13 @@ describe('Slicing.', function () {
 describe('Methods.', function () {
 
   describe('set', function() {
-    it('single value', function() {
+    test('single value', function() {
       let x = numts.arange(10).reshape(2, 5);
       x.s(-20, 0, 0);
       expect(x.g(0, 0)).toBe(-20);
     });
 
-    it('slice.', function(){
+    test('slice.', function(){
       let x = numts.arange(10).reshape(2, 5);
       const replacement = numts.arange(10, 14).reshape(2, 2);
       x.s(replacement, [0, 2], [0, 2]);
@@ -364,7 +364,7 @@ describe('Methods.', function () {
       expect(values).toEqual([10, 11, 12, 13]);
     });
 
-    // it('From failed matrix multiplication.', function() {
+    // test('From failed matrix multiplication.', function() {
     //   let x = numts.zeros([2, 3, 4]);
     //   const a = numts.from_nested_array([
     //     [56, 62, 68, 74],
@@ -378,7 +378,7 @@ describe('Methods.', function () {
 describe('Unary methods.', function () {
 
   describe('Nonzero.', function () {
-    it('simple.', function () {
+    test('simple.', function () {
       const array = numts.from_nested_array([
         [0, 1, 0], [2, 0, 1]
       ]);
@@ -395,7 +395,7 @@ describe('Unary methods.', function () {
 
   describe('Methods along axes.', function () {
 
-    
+
 
 
   });
@@ -404,7 +404,7 @@ describe('Unary methods.', function () {
 
 describe('Broadcasting.', function () {
 
-  it('Broadcast on axis.', function () {
+  test('Broadcast on axis.', function () {
     let x = numts.arange(30).reshape([3, 2, 5]);
     let y = x.sum(1);
     const expected_data = [
@@ -418,7 +418,7 @@ describe('Broadcasting.', function () {
   });
 
   describe('From failures.', function() {
-  }); 
+  });
 
   describe('_binary_broadcast.', function () {
 
@@ -430,11 +430,11 @@ describe('Aggregation.', function () {
   let array = numts.arange(30).reshape([3, 2, 5]);
 
     describe('min.', function () {
-      it('min over all.', function () {
+      test('min over all.', function () {
         expect(array.min()).toBe(0);
       });
 
-      it('min over 0.', function () {
+      test('min over 0.', function () {
         const expected = numts.from_nested_array([
           [0, 1, 2, 3, 4],
           [5, 6, 7, 8, 9]
@@ -444,11 +444,11 @@ describe('Aggregation.', function () {
     });
 
     describe('max.', function () {
-      it('max over all.', function () {
+      test('max over all.', function () {
         expect(array.max()).toBe(29);
       });
 
-      it('max over 0.', function () {
+      test('max over 0.', function () {
         const expected = numts.from_nested_array([
           [20, 21, 22, 23, 24],
           [25, 26, 27, 28, 29]
@@ -459,12 +459,12 @@ describe('Aggregation.', function () {
 
   describe('all.', function() {
 
-    it('No axis.', function() {
+    test('No axis.', function() {
       const a = numts.arange(5).add(1);
       expect(a.all()).toBe(true);
     });
 
-    it('Basic.', function() {
+    test('Basic.', function() {
       const a = numts.from_nested_array([
         [0, 0, 1],
         [1, 1, 1]
@@ -476,7 +476,7 @@ describe('Aggregation.', function () {
   });
 
   describe('any.', function() {
-    it('Basic.', function() {
+    test('Basic.', function() {
       const a = numts.from_nested_array([
         [0, 0, 1],
         [0, 1, 1]
@@ -488,14 +488,14 @@ describe('Aggregation.', function () {
   });
 
   describe('cumsum.', function () {
-    it('No axes.', function () {
+    test('No axes.', function () {
       const input = numts.arange(12).reshape([3, 4]);
       const x = input.cumsum();
       const expected = numts.from_iterable([0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66], [12], 'int32');
       expect(x.equals(expected)).toBe(true);
     });
 
-    it('2d, axis 1.', function () {
+    test('2d, axis 1.', function () {
       const input = numts.arange(12).reshape([3, 4]);
       const result = input.cumsum(1);
       const expected = numts.from_nested_array([
@@ -508,14 +508,14 @@ describe('Aggregation.', function () {
   });
 
   describe('cumprod.', function () {
-    it('No axes.', function () {
+    test('No axes.', function () {
       const input = numts.arange(1, 13).reshape([3, 4]);
       const x = input.cumprod();
       const expected = numts.from_iterable([1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600], [12], 'int32');
       expect(x.equals(expected)).toBe(true);
     });
 
-    it('2d, axis 1.', function () {
+    test('2d, axis 1.', function () {
       const input = numts.arange(1, 13).reshape([3, 4]);
       const result = input.cumprod(1);
       const expected = numts.from_nested_array([
@@ -528,13 +528,13 @@ describe('Aggregation.', function () {
   });
 
   describe('variance.', function() {
-    it('Basic.', function() {
-      
+    test('Basic.', function() {
+
     })
   });
 
   describe('mean.', function () {
-    it('2d.', function () {
+    test('2d.', function () {
       const array = numts.arange(25).reshape([5, 5]);
       const mean = array.mean();
       expect(mean).toBeCloseTo(12.0);
@@ -543,7 +543,7 @@ describe('Aggregation.', function () {
   });
 
   describe('stdev.', function () {
-    it('2d.', function () {
+    test('2d.', function () {
       const array = numts.arange(25).reshape([5, 5]);
       const stdev = array.stdev();
       expect(stdev).toBeCloseTo(7.211);
@@ -559,14 +559,14 @@ describe('Aggregation.', function () {
         [25, 27, 29, 31, 33],
         [45, 47, 49, 51, 53]
       ];
-  
+
       const expected_array = numts.from_nested_array(expected_data, 'int32');
       expect(expected_array.equals(y)).toBe(true);
     });
   });
 
   describe('reduce', function() {
-    it('on slice.', function() {
+    test('on slice.', function() {
       const a = numts.arange(30).reshape(5, 6);
       const b = a.slice([2, 4]);
       const res = b.reduce((x, y) => x + y);
@@ -578,29 +578,29 @@ describe('Aggregation.', function () {
 describe('Method constructors.', function() {
 
   describe('flatten.', function() {
-    it('Simple test.', function() {
+    test('Simple test.', function() {
       let a = numts.arange(30).reshape(2, 3, 5);
       let b = a.flatten();
       let expected = numts.arange(30);
       expect(b.equals(expected)).toBe(true);
     })
-    
+
   });
 
   describe('transpose.', function() {
-    it('Two dimensions.', function() {
+    test('Two dimensions.', function() {
       const a = numts.arange(4).reshape(2, 2);
       const b = a.transpose();
       const expected = numts.from_nested_array([
         [0, 2],
         [1, 3]
       ], 'int32');
-      
+
       expect(b.equals(expected)).toBe(true);
     });
 
     describe('Failures.', function() {
-      it('Failed in QR decomp', function() {
+      test('Failed in QR decomp', function() {
         const a = numts.from_nested_array([[0], [1], [0.5345224838248488], [0.8017837257372732]]);
         const b = a.transpose();
         const expected = numts.from_nested_array([[0, 1, 0.5345224838248488, 0.8017837257372732]]);
@@ -610,7 +610,7 @@ describe('Method constructors.', function() {
   });
 
   describe('tril.', function() {
-    it('Three dimensions.', function() {
+    test('Three dimensions.', function() {
       const a = numts.arange(30).reshape(3, 2, 5);
       const b = a.tril();
       const expected = numts.from_nested_array([
@@ -626,7 +626,7 @@ describe('Method constructors.', function() {
   });
 
   describe('triu.', function() {
-    it('Three dimensions.', function() {
+    test('Three dimensions.', function() {
       const a = numts.arange(30).reshape(3, 2, 5);
       const b = a.triu();
       const expected = numts.from_nested_array([
@@ -646,7 +646,7 @@ describe('Static methods.', () => {
     describe('Copy.', () => {
 
         describe('Previous breaks.', () => {
-            it('householder_vector break. 2021-01-30.', () => {
+            test('householder_vector break. 2021-01-30.', () => {
                 // Source: copy doesn't copy the initial offset. Issue #178.
                 const a = numts.from_nested_array([
                     [1, 6,  11],

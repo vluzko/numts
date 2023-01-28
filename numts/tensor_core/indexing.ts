@@ -63,8 +63,8 @@ export namespace indexing {
   }
 
   /**
-   * 
-   * @param indices 
+   *
+   * @param indices
    */
   export function checks_indices_are_single_index(...indices) {
     return indices.reduce((a, b) => a && utils.is_numeric(b), true);
@@ -261,7 +261,7 @@ export namespace indexing {
         for (let starting_index of starting_indices) {
           let current_index = utils.dot(starting_index, index_stride) + start;
           while (current_index <= end) {
-            
+
             yield current_index;
             current_index += step;
           }
