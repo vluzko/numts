@@ -1,5 +1,4 @@
 .idea/
-package-lock.json
 node_modules/
 *js.map
 numts/**/*.js

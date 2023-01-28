@@ -8,7 +8,8 @@ jobs:
       - checkout
       # - node/install:
       #     node-version: "17.0.1"
-      - node/install-packages
+      - node/install-packages:
+          pkg-manager: npm
       - run:
           command: npm run test
 workflows:
