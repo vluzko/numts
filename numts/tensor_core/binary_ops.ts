@@ -357,8 +357,8 @@ export function tensordot(a: tensor, b: tensor, axes: number | Shape): tensor {
     if (typeof axes === 'number') {
         return _one_axis_tensordot(a, b, axes);
     } else {
+        throw new Error('Not implemented')
     }
-    throw new Error('Not implemented')
 }
 
 function _one_axis_tensordot(a: tensor, b: tensor, axis: number): tensor {
@@ -372,7 +372,6 @@ function _one_axis_tensordot(a: tensor, b: tensor, axis: number): tensor {
         const a_idx = a.shape.length - i - 1;
         if (a.shape[a_idx] !== b.shape[i]) {
             throw new errors.MismatchedShapes(a.shape, b.shape);
-            // throw new Error(`Invalid axes for tensor dot. axes=${axis}, a.shape=${a.shape}, b.shape=${b.shape}`);
         }
     }
 
@@ -381,7 +380,6 @@ function _one_axis_tensordot(a: tensor, b: tensor, axis: number): tensor {
         const dtype = utils._dtype_join(a.dtype, b.dtype);
         return constructors.from_nested_array([dot(a, b)], dtype);
     }
-
     const a_dims = a.shape.slice(0, a.shape.length - axis);
     const b_dims = b.shape.slice(axis);
     let final_shape = new Uint32Array([...a_dims, ...b_dims]);
@@ -391,6 +389,13 @@ function _one_axis_tensordot(a: tensor, b: tensor, axis: number): tensor {
         iter_shape = new Uint32Array([1, 1]);
     } else {
         iter_shape = final_shape;
+    }
+
+    // Special case one-dimensional arrays
+    if (a.shape.length === 1) {
+        return _one_axis_tensordot(a.reshape([1, a.shape[0]]), b, axis).reshape(final_shape);
+    } else if (b.shape.length === 1) {
+        return _one_axis_tensordot(a, b.reshape([b.shape[0], 1]), axis).reshape(final_shape);
     }
 
     const result_index_iterator = indexing.iorder_index_iterator(iter_shape);
@@ -408,7 +413,4 @@ function _one_axis_tensordot(a: tensor, b: tensor, axis: number): tensor {
     }
 
     return constructors.from_iterable(iter, final_shape, utils._dtype_join(a.dtype, b.dtype));
-
-    // const final_shape = a.shape.slice(0, a.shape.length - axis).concat(b.shape.slice(axis));
-    throw new Error();
 }
