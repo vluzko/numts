@@ -3,12 +3,11 @@ orbs:
   node: circleci/node@5.1.0
 jobs:
   build-and-test:
-    docker:
-      - image: "cimg/base:stable"
+    executor: node/default
     steps:
       - checkout
-      - node/install:
-          node-version: "17.0.1"
+      # - node/install:
+      #     node-version: "17.0.1"
       - node/install-packages
       - run:
           command: npm run test
