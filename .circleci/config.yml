@@ -10,7 +10,7 @@ jobs:
       #     node-version: "17.0.1"
       - node/install-packages:
           pkg-manager: npm
-      - build:
+      - run:
           command: npm run build
       - run:
           command: npm run test
